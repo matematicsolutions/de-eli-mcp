@@ -1,5 +1,7 @@
 # de-eli-mcp
 
+<!-- mcp-name: io.github.matematicsolutions/de-eli-mcp -->
+
 An MCP server for **NeuRIS** (`rechtsinformationen.bund.de`), Germany's official
 federal legal information portal. It searches and retrieves legislation
 (Gesetze, Verordnungen) with verifiable ELI identifiers and German citations.
