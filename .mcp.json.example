@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "de-eli-mcp": {
+      "command": "de-eli-mcp",
+      "env": {
+        "DE_ELI_BASE_URL": "https://testphase.rechtsinformationen.bund.de",
+        "DE_ELI_CACHE_DIR": "~/.matematic/cache/de-eli",
+        "DE_ELI_AUDIT_DIR": "~/.matematic/audit"
+      }
+    }
+  }
+}

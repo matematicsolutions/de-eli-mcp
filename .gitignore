@@ -1,0 +1,20 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local runtime (never source)
+.matematic/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Note: tests/fixtures/*.json ARE committed - public NeuRIS data needed for tests.
