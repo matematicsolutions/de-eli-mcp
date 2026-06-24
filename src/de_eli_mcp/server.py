@@ -21,12 +21,22 @@ from fastmcp import FastMCP
 from mcp.types import ToolAnnotations
 
 from .audit import AuditLogger, hash_input, timer
-from .citations import enrich_legislation_payload, parse_eli, pick_encoding_content_url
+from .citations import (
+    enrich_decision_payload,
+    enrich_legislation_payload,
+    parse_eli,
+    pick_encoding_content_url,
+)
 from .client import DEFAULT_BASE_URL, NeurisClient, extract_search_items
 from .models import (
     Act,
     ActInfo,
     ActText,
+    CaseSearchQuery,
+    CaseSearchResult,
+    Decision,
+    DecisionInfo,
+    DecisionText,
     Publisher,
     SearchQuery,
     SearchResult,
@@ -58,6 +68,11 @@ This MCP server exposes the German NeuRIS API (rechtsinformationen.bund.de) - of
 
 ### Monitoring changes
 5. `de_recent_changes` - acts published since `since_iso` (ISO 8601), newest-first. Useful for a law-monitoring feature.
+
+### Case law (federal court decisions)
+6. `de_case_search` - search decisions (`GET /v1/case-law`) by `search_term` and date. Each item carries its `ecli` (e.g. `ECLI:DE:BAG:2024:200624.U.8AZR124.23.0`).
+7. `de_get_decision` - decision metadata by `document_number` (e.g. `KARE600069049`).
+8. `de_get_decision_text` - full text of a decision in `html` or `xml`.
 
 ## Hard constraints
 
@@ -440,6 +455,197 @@ async def de_recent_changes(since_iso: str, limit: int = 50) -> list[ActInfo]:
         status="ok",
     )
     return items
+
+
+# ---------------------------------------------------------------------------
+# de_case_search
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def de_case_search(query: CaseSearchQuery) -> CaseSearchResult:
+    """Search German federal court decisions in NeuRIS.
+
+    Maps to ``GET /v1/case-law``. Each item gets ``ecli``,
+    ``human_readable_citation``, ``source_url``.
+
+    Args:
+        query: ``CaseSearchQuery`` - search_term, date_from/to, size, page_index, sort.
+
+    Returns:
+        ``CaseSearchResult`` with ``total_items`` and ``items: list[DecisionInfo]``.
+    """
+    audit = _audit()
+    input_hash = hash_input(query.model_dump(mode="json"))
+    base = _base_url()
+
+    params: dict[str, Any] = {
+        "searchTerm": query.search_term,
+        "dateFrom": query.date_from,
+        "dateTo": query.date_to,
+        "size": query.size,
+        "pageIndex": query.page_index,
+        "sort": query.sort,
+    }
+
+    with timer() as t:
+        try:
+            async with NeurisClient(base_url=base) as client:
+                raw = await client.case_search(params)
+        except Exception as exc:
+            audit.log(
+                tool="de_case_search",
+                input_hash=input_hash,
+                output_count_or_size=0,
+                duration_ms=t.duration_ms if t.duration_ms else 0,
+                status="error",
+                error=f"{type(exc).__name__}: {exc}",
+            )
+            raise _map_http_error(exc) from exc
+
+    total, items_raw = extract_search_items(raw)
+    items = [
+        DecisionInfo.model_validate(enrich_decision_payload(item, base_url=base))
+        for item in items_raw
+    ]
+    result = CaseSearchResult(total_items=total, items=items, query_echo=query)
+
+    audit.log(
+        tool="de_case_search",
+        input_hash=input_hash,
+        output_count_or_size=len(items),
+        duration_ms=t.duration_ms,
+        status="ok",
+    )
+    return result
+
+
+# ---------------------------------------------------------------------------
+# de_get_decision
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def de_get_decision(document_number: str) -> Decision:
+    """Fetch court-decision metadata from NeuRIS by document number.
+
+    Args:
+        document_number: NeuRIS document number, e.g. ``"KARE600069049"``.
+
+    Returns:
+        ``Decision`` with ``ecli``, ``human_readable_citation``, ``source_url``.
+    """
+    audit = _audit()
+    input_hash = hash_input({"document_number": document_number})
+    base = _base_url()
+
+    if not document_number or not document_number.strip():
+        raise ELIError("invalid_arg", "document_number must not be empty.")
+
+    with timer() as t:
+        try:
+            async with NeurisClient(base_url=base) as client:
+                raw = await client.get_decision(document_number)
+        except Exception as exc:
+            audit.log(
+                tool="de_get_decision",
+                input_hash=input_hash,
+                output_count_or_size=0,
+                duration_ms=t.duration_ms if t.duration_ms else 0,
+                status="error",
+                error=f"{type(exc).__name__}: {exc}",
+            )
+            raise _map_http_error(exc) from exc
+
+    decision = Decision.model_validate(enrich_decision_payload(raw, base_url=base))
+
+    audit.log(
+        tool="de_get_decision",
+        input_hash=input_hash,
+        output_count_or_size=1,
+        duration_ms=t.duration_ms,
+        status="ok",
+    )
+    return decision
+
+
+# ---------------------------------------------------------------------------
+# de_get_decision_text
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def de_get_decision_text(document_number: str, format: TextFormat = "html") -> DecisionText:
+    """Fetch the full text of a court decision.
+
+    Resolves the manifestation from the decision's ``encoding`` array and downloads it.
+
+    Args:
+        document_number: NeuRIS document number, e.g. ``"KARE600069049"``.
+        format: ``"html"`` or ``"xml"``.
+
+    Returns:
+        ``DecisionText`` with ``ecli``, ``human_readable_citation``, ``source_url``, ``content``.
+    """
+    audit = _audit()
+    input_hash = hash_input({"document_number": document_number, "format": format})
+    base = _base_url()
+
+    if format not in ("html", "xml"):
+        raise ELIError("unsupported_format", f"Unsupported format: {format!r}. Allowed: html, xml.")
+    if not document_number or not document_number.strip():
+        raise ELIError("invalid_arg", "document_number must not be empty.")
+
+    with timer() as t:
+        try:
+            async with NeurisClient(base_url=base) as client:
+                decision = await client.get_decision(document_number)
+                content_url = pick_encoding_content_url(decision, format)
+                if content_url is None:
+                    raise ELIError(
+                        "not_found",
+                        f"No {format} manifestation for decision {document_number}.",
+                    )
+                text, ct, fetched_url = await client.get_content(content_url)
+        except ELIError:
+            audit.log(
+                tool="de_get_decision_text",
+                input_hash=input_hash,
+                output_count_or_size=0,
+                duration_ms=t.duration_ms if t.duration_ms else 0,
+                status="error",
+            )
+            raise
+        except Exception as exc:
+            audit.log(
+                tool="de_get_decision_text",
+                input_hash=input_hash,
+                output_count_or_size=0,
+                duration_ms=t.duration_ms if t.duration_ms else 0,
+                status="error",
+                error=f"{type(exc).__name__}: {exc}",
+            )
+            raise _map_http_error(exc) from exc
+
+    enriched = enrich_decision_payload(decision, base_url=base)
+    result = DecisionText(
+        ecli=enriched.get("ecli"),
+        human_readable_citation=enriched.get("human_readable_citation"),
+        source_url=fetched_url,
+        format=format,
+        content=text,
+        content_type=ct,
+        byte_size=len(text.encode("utf-8")),
+    )
+
+    audit.log(
+        tool="de_get_decision_text",
+        input_hash=input_hash,
+        output_count_or_size=result.byte_size or 0,
+        duration_ms=t.duration_ms,
+        status="ok",
+    )
+    return result
 
 
 # ---------------------------------------------------------------------------

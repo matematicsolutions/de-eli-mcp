@@ -167,8 +167,9 @@ def enrich_legislation_payload(
     citation = human_readable_citation(payload)
     if citation is not None:
         out["human_readable_citation"] = citation
+    eli_val = out.get("eli_uri")
     out["source_url"] = source_url(
-        payload, base_url=base_url, eli=out.get("eli_uri") if isinstance(out.get("eli_uri"), str) else None
+        payload, base_url=base_url, eli=eli_val if isinstance(eli_val, str) else None
     )
     return out
 
@@ -196,3 +197,55 @@ def pick_encoding_content_url(
             if isinstance(url, str) and url.strip():
                 return url.strip()
     return None
+
+
+# --- Case law (ECLI) ---------------------------------------------------------
+
+
+def _format_iso_date_de(iso: str | None) -> str | None:
+    """'2024-06-20' -> '20.06.2024' (German date convention)."""
+    if not isinstance(iso, str) or len(iso) < 10:
+        return None
+    y, m, d = iso[:4], iso[5:7], iso[8:10]
+    if y.isdigit() and m.isdigit() and d.isdigit():
+        return f"{d}.{m}.{y}"
+    return None
+
+
+def decision_human_readable_citation(payload: dict[str, Any]) -> str | None:
+    """German case-law citation, e.g. 'BAG, Urteil vom 20.06.2024 - 8 AZR 124/23'."""
+    court = None
+    for key in ("courtType", "courtName"):
+        v = payload.get(key)
+        if isinstance(v, str) and v.strip():
+            court = v.strip()
+            break
+    doc_type = payload.get("documentType")
+    date_de = _format_iso_date_de(payload.get("decisionDate"))
+    file_no = None
+    files = payload.get("fileNumbers")
+    if isinstance(files, list) and files and isinstance(files[0], str):
+        file_no = files[0].strip()
+
+    head = ", ".join(p for p in (court, doc_type if isinstance(doc_type, str) else None) if p)
+    parts = [p for p in (head or None, f"vom {date_de}" if date_de else None) if p]
+    citation = " ".join(parts) if parts else None
+    if citation and file_no:
+        return f"{citation} - {file_no}"
+    return citation or file_no
+
+
+def enrich_decision_payload(payload: dict[str, Any], base_url: str) -> dict[str, Any]:
+    """Attach ``ecli`` / ``human_readable_citation`` / ``source_url`` to a decision payload."""
+    out = dict(payload)
+    ecli = payload.get("ecli")
+    if isinstance(ecli, str) and ecli.strip():
+        out["ecli"] = ecli.strip()
+    citation = decision_human_readable_citation(payload)
+    if citation is not None:
+        out["human_readable_citation"] = citation
+    at_id = payload.get("@id")
+    out["source_url"] = (
+        f"{base_url}{at_id}" if isinstance(at_id, str) and at_id.strip() else base_url
+    )
+    return out

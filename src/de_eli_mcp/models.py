@@ -114,3 +114,63 @@ class Publisher(_Tolerant):
     code: str
     name: str | None = None
     note: str | None = None
+
+
+# --- Case law (ECLI) ---------------------------------------------------------
+
+
+class DecisionInfo(_Tolerant):
+    """Lightweight court-decision record - from a case-law search item."""
+
+    id: str | None = Field(default=None, alias="@id")
+    documentNumber: str | None = None
+    ecli: str | None = None
+    headline: str | None = None
+    decisionDate: str | None = None
+    fileNumbers: list[str] = Field(default_factory=list)
+    courtType: str | None = None
+    courtName: str | None = None
+    documentType: str | None = None
+
+    # Enrichments (Art. 4 CONSTITUTION). The canonical id for case law is the ECLI.
+    human_readable_citation: str | None = None
+    source_url: str | None = None
+
+
+class Decision(DecisionInfo):
+    """Full court-decision metadata - GET /v1/case-law/{documentNumber}."""
+
+    dataset_note: str = DATASET_NOTE
+
+
+class CaseSearchQuery(_Tolerant):
+    """Arguments for the ``de_case_search`` tool."""
+
+    search_term: str | None = Field(default=None, alias="searchTerm")
+    date_from: str | None = None
+    date_to: str | None = None
+    size: int = Field(default=20, ge=1, le=300)
+    page_index: int = Field(default=0, ge=0)
+    sort: str | None = None
+
+
+class CaseSearchResult(_Tolerant):
+    """Result of ``de_case_search``."""
+
+    total_items: int
+    items: list[DecisionInfo] = Field(default_factory=list)
+    query_echo: CaseSearchQuery | None = None
+    dataset_note: str = DATASET_NOTE
+
+
+class DecisionText(_Tolerant):
+    """Result of ``de_get_decision_text``."""
+
+    ecli: str | None = None
+    human_readable_citation: str | None = None
+    source_url: str
+    format: TextFormat
+    content: str | None = None
+    content_type: str | None = None
+    byte_size: int | None = None
+    dataset_note: str = DATASET_NOTE

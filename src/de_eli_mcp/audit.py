@@ -89,7 +89,7 @@ class _Timer:
         self._t0 = 0.0
         self.duration_ms = 0
 
-    def __enter__(self) -> "_Timer":
+    def __enter__(self) -> _Timer:
         self._t0 = time.perf_counter()
         return self
 

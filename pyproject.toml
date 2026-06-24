@@ -58,6 +58,12 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "SIM", "RUF"]
 
+[tool.ruff.lint.per-file-ignores]
+# pydantic fields mirror NeuRIS JSON-LD names verbatim (validation depends on it)
+"src/de_eli_mcp/models.py" = ["N815"]
+# INSTRUCTIONS is a long-form operational prose string shown to the LLM
+"src/de_eli_mcp/server.py" = ["E501"]
+
 [tool.mypy]
 strict = true
 python_version = "3.11"

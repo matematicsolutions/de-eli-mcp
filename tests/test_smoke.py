@@ -12,9 +12,12 @@ from __future__ import annotations
 
 import pytest
 
-from de_eli_mcp.models import SearchQuery
+from de_eli_mcp.models import CaseSearchQuery, SearchQuery
 from de_eli_mcp.server import (
+    de_case_search,
     de_get_act,
+    de_get_decision,
+    de_get_decision_text,
     de_get_text,
     de_list_publishers,
     de_search,
@@ -22,6 +25,8 @@ from de_eli_mcp.server import (
 
 # A stable expression-level ELI: Bundesdatenschutzgesetz (BDSG).
 BDSG_ELI = "eli/bund/bgbl-1/2017/s2097/2025-01-01/1/deu"
+# A stable BAG data-protection decision document number.
+BAG_DECISION = "KARE600069049"
 
 
 @pytest.mark.asyncio
@@ -59,6 +64,36 @@ async def test_smoke_get_bdsg() -> None:
 async def test_smoke_get_text_html() -> None:
     text = await de_get_text(BDSG_ELI, format="html")
     assert text.eli_uri == BDSG_ELI
+    assert text.format == "html"
+    assert text.content is not None and len(text.content) > 0
+    assert text.source_url.startswith("https://")
+    assert text.byte_size and text.byte_size > 0
+
+
+@pytest.mark.asyncio
+async def test_smoke_case_search() -> None:
+    result = await de_case_search(CaseSearchQuery(search_term="Datenschutz", size=5))
+    assert result.total_items > 0, "Expected case-law hits for 'Datenschutz'"
+    assert len(result.items) > 0
+    for item in result.items:
+        assert item.ecli is not None, "missing ecli"
+        assert item.ecli.startswith("ECLI:DE:"), f"bad ecli: {item.ecli!r}"
+        assert item.human_readable_citation is not None
+        assert item.source_url is not None
+
+
+@pytest.mark.asyncio
+async def test_smoke_get_decision() -> None:
+    decision = await de_get_decision(BAG_DECISION)
+    assert decision.ecli is not None and decision.ecli.startswith("ECLI:DE:BAG:")
+    assert decision.human_readable_citation is not None
+    assert "BAG" in decision.human_readable_citation
+    assert decision.source_url is not None and decision.source_url.startswith("https://")
+
+
+@pytest.mark.asyncio
+async def test_smoke_get_decision_text_html() -> None:
+    text = await de_get_decision_text(BAG_DECISION, format="html")
     assert text.format == "html"
     assert text.content is not None and len(text.content) > 0
     assert text.source_url.startswith("https://")

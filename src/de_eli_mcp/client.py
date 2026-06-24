@@ -41,7 +41,7 @@ class NeurisClient:
             headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
         )
 
-    async def __aenter__(self) -> "NeurisClient":
+    async def __aenter__(self) -> NeurisClient:
         return self
 
     async def __aexit__(self, *_exc: object) -> None:
@@ -139,6 +139,19 @@ class NeurisClient:
     async def statistics(self) -> dict[str, Any]:
         data = await self._get_json("/v1/statistics", category="dict")
         return data if isinstance(data, dict) else {}
+
+    async def case_search(self, params: dict[str, Any]) -> dict[str, Any]:
+        data = await self._get_json("/v1/case-law", params=params, category="search")
+        if not isinstance(data, dict):
+            return {"totalItems": 0, "member": []}
+        return data
+
+    async def get_decision(self, document_number: str) -> dict[str, Any]:
+        path = f"/v1/case-law/{document_number.strip().lstrip('/')}"
+        data = await self._get_json(path, category="act")
+        if not isinstance(data, dict):
+            raise ValueError(f"Unexpected response shape for {path}: {type(data).__name__}")
+        return data
 
 
 def extract_search_items(raw: dict[str, Any]) -> tuple[int, list[dict[str, Any]]]:
