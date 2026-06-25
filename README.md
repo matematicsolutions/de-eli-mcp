@@ -2,6 +2,23 @@
 
 <!-- mcp-name: io.github.matematicsolutions/de-eli-mcp -->
 
+
+## Instalacja (jedna komenda)
+
+Opublikowany na PyPI + MCP Registry (`io.github.matematicsolutions/de-eli-mcp`). Uruchomienie bez klonowania:
+
+```bash
+uvx de-eli-mcp
+```
+
+Konfiguracja klienta MCP (stdio):
+
+```json
+{ "mcpServers": { "de-eli-mcp": { "command": "uvx", "args": ["de-eli-mcp"] } } }
+```
+
+(Budowanie ze źródeł — niżej.)
+
 An MCP server for **NeuRIS** (`rechtsinformationen.bund.de`), Germany's official
 federal legal information portal. It searches and retrieves legislation
 (Gesetze, Verordnungen) with verifiable ELI identifiers and German citations.
