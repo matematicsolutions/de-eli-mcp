@@ -174,3 +174,78 @@ class DecisionText(_Tolerant):
     content_type: str | None = None
     byte_size: int | None = None
     dataset_note: str = DATASET_NOTE
+
+
+# --- Case law via rechtsprechung-im-internet.de (RII) -------------------------
+
+RII_NOTE = (
+    "Source: rechtsprechung-im-internet.de (RII), the official BMJ/juris case-law "
+    "aggregator. Coverage per the Legal Data Hunter audit (worldwidelaw/legal-sources): "
+    "BVerfG, BGH, BAG, BFH, BVerwG, BSG (+ BPatG) are complete for decisions RII has "
+    "published; RII itself does not claim to hold every decision ever issued by these "
+    "courts (courts publish selectively), so absence of a hit is not proof a decision "
+    "does not exist."
+)
+
+RiiCourt = Literal["BVerfG", "BGH", "BAG", "BFH", "BVerwG", "BSG", "BPatG"]
+
+
+class RiiCaseQuery(_Tolerant):
+    """Arguments for the ``de_rii_case_search`` tool."""
+
+    court: RiiCourt | None = Field(
+        default=None, description="Filter by federal court, e.g. 'BVerfG'."
+    )
+    aktenzeichen_contains: str | None = Field(
+        default=None, description="Substring match against the Aktenzeichen (docket number)."
+    )
+    date_from: str | None = Field(default=None, description="ISO or YYYYMMDD, inclusive.")
+    date_to: str | None = Field(default=None, description="ISO or YYYYMMDD, inclusive.")
+    limit: int = Field(default=20, ge=1, le=200)
+    offset: int = Field(default=0, ge=0)
+
+
+class RiiCaseInfo(_Tolerant):
+    """Lightweight RII decision record - one TOC row."""
+
+    court_raw: str
+    court_type: str
+    decision_date: str | None = None
+    aktenzeichen: str | None = None
+    doc_id: str
+    zip_url: str
+    modified: str | None = None
+
+    human_readable_citation: str | None = None
+    source_url: str | None = None
+
+
+class RiiCaseSearchResult(_Tolerant):
+    """Result of ``de_rii_case_search``."""
+
+    total_items: int
+    items: list[RiiCaseInfo] = Field(default_factory=list)
+    query_echo: RiiCaseQuery | None = None
+    note: str = RII_NOTE
+
+
+class RiiCaseText(_Tolerant):
+    """Result of ``de_rii_get_case_text``."""
+
+    doc_id: str
+    ecli: str | None = None
+    eli_uri: str
+    court: str | None = None
+    spruchkoerper: str | None = None
+    decision_date: str | None = None
+    aktenzeichen: str | None = None
+    doktyp: str | None = None
+    norm: str | None = None
+    human_readable_citation: str | None = None
+    source_url: str
+    titelzeile: str | None = None
+    leitsatz: str | None = None
+    tenor: str | None = None
+    content: str | None = Field(default=None, description="Full text (Tatbestand + Gruende).")
+    byte_size: int | None = None
+    note: str = RII_NOTE

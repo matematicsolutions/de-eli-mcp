@@ -24,6 +24,7 @@ from .audit import AuditLogger, hash_input, timer
 from .citations import (
     enrich_decision_payload,
     enrich_legislation_payload,
+    enrich_rii_decision,
     parse_eli,
     pick_encoding_content_url,
 )
@@ -38,10 +39,16 @@ from .models import (
     DecisionInfo,
     DecisionText,
     Publisher,
+    RiiCaseInfo,
+    RiiCaseQuery,
+    RiiCaseSearchResult,
+    RiiCaseText,
     SearchQuery,
     SearchResult,
     TextFormat,
 )
+from .rii_client import DEFAULT_BASE_URL as RII_DEFAULT_BASE_URL
+from .rii_client import RiiClient, search_toc
 
 # ---------------------------------------------------------------------------
 # Instructions (procedural orchestration) - injected into the MCP client's
@@ -69,10 +76,16 @@ This MCP server exposes the German NeuRIS API (rechtsinformationen.bund.de) - of
 ### Monitoring changes
 5. `de_recent_changes` - acts published since `since_iso` (ISO 8601), newest-first. Useful for a law-monitoring feature.
 
-### Case law (federal court decisions)
-6. `de_case_search` - search decisions (`GET /v1/case-law`) by `search_term` and date. Each item carries its `ecli` (e.g. `ECLI:DE:BAG:2024:200624.U.8AZR124.23.0`).
+### Case law (federal court decisions, NeuRIS beta)
+6. `de_case_search` - search decisions (`GET /v1/case-law`) by `search_term` and date. Each item carries its `ecli` (e.g. `ECLI:DE:BAG:2024:200624.U.8AZR124.23.0`). **NeuRIS case-law coverage is a small beta slice** - prefer tools 9-10 below for the six federal supreme/constitutional courts.
 7. `de_get_decision` - decision metadata by `document_number` (e.g. `KARE600069049`).
 8. `de_get_decision_text` - full text of a decision in `html` or `xml`.
+
+### Case law (federal court decisions, rechtsprechung-im-internet.de - complete for these courts)
+9. `de_rii_case_search` - search the official RII case-law aggregator for **BVerfG** (Bundesverfassungsgericht), **BGH** (Bundesgerichtshof), **BAG** (Bundesarbeitsgericht), **BFH** (Bundesfinanzhof), **BVerwG** (Bundesverwaltungsgericht), **BSG** (Bundessozialgericht) and **BPatG** (Bundespatentgericht). Filter by `court`, `aktenzeichen_contains` (docket-number substring), `date_from`/`date_to`. No free-text search over decision content (RII's TOC carries no full text) - use `de_rii_get_case_text` once you have a `doc_id` candidate.
+10. `de_rii_get_case_text` - full text of one decision by `doc_id` (from a `de_rii_case_search` result, e.g. `JURE100055033`). Returns `titelzeile`, `leitsatz`, `tenor` and the full `content` (Tatbestand + Entscheidungsgruende/Gruende), plus the real `ecli` when the court publishes one.
+
+For BVerfG, BGH, BAG, BFH, BVerwG or BSG, ALWAYS prefer `de_rii_case_search`/`de_rii_get_case_text` over `de_case_search` - RII is the complete, non-beta source for these six courts.
 
 ## Hard constraints
 
@@ -651,6 +664,188 @@ async def de_get_decision_text(document_number: str, format: TextFormat = "html"
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# de_rii_case_search
+# ---------------------------------------------------------------------------
+
+
+def _rii_base_url() -> str:
+    return os.environ.get("DE_RII_BASE_URL", RII_DEFAULT_BASE_URL).rstrip("/")
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def de_rii_case_search(query: RiiCaseQuery) -> RiiCaseSearchResult:
+    """Search German federal court decisions via rechtsprechung-im-internet.de (RII).
+
+    RII is the official BMJ/juris case-law aggregator and, per the independent Legal
+    Data Hunter audit, is *complete* for BVerfG, BGH, BAG, BFH, BVerwG, BSG (+ BPatG) -
+    unlike NeuRIS's `/v1/case-law`, which is a small beta slice. Filters over the master
+    table of contents (court, Aktenzeichen substring, date range); there is no full-text
+    search (the TOC carries no decision text).
+
+    Args:
+        query: ``RiiCaseQuery`` - court, aktenzeichen_contains, date_from/to, limit, offset.
+
+    Returns:
+        ``RiiCaseSearchResult`` with ``total_items`` and ``items: list[RiiCaseInfo]``,
+        each carrying a ``doc_id`` usable with ``de_rii_get_case_text``.
+    """
+    audit = _audit()
+    input_hash = hash_input(query.model_dump(mode="json"))
+
+    with timer() as t:
+        try:
+            async with RiiClient(base_url=_rii_base_url()) as client:
+                toc = await client.get_toc()
+        except Exception as exc:
+            audit.log(
+                tool="de_rii_case_search",
+                input_hash=input_hash,
+                output_count_or_size=0,
+                duration_ms=t.duration_ms if t.duration_ms else 0,
+                status="error",
+                error=f"{type(exc).__name__}: {exc}",
+            )
+            raise ELIError("upstream_error", f"RII TOC fetch failed: {type(exc).__name__}: {exc}") from exc
+
+        total, page = search_toc(
+            toc,
+            court=query.court,
+            aktenzeichen_contains=query.aktenzeichen_contains,
+            date_from=query.date_from,
+            date_to=query.date_to,
+            limit=query.limit,
+            offset=query.offset,
+        )
+
+    items = [
+        RiiCaseInfo(
+            court_raw=it.court_raw,
+            court_type=it.court_type,
+            decision_date=it.decision_date,
+            aktenzeichen=it.aktenzeichen,
+            doc_id=it.doc_id,
+            zip_url=it.zip_url,
+            modified=it.modified,
+            human_readable_citation=(
+                f"{it.court_raw}, vom {it.decision_date} - {it.aktenzeichen}"
+                if it.decision_date and it.aktenzeichen
+                else it.aktenzeichen
+            ),
+            source_url=it.zip_url,
+        )
+        for it in page
+    ]
+    result = RiiCaseSearchResult(total_items=total, items=items, query_echo=query)
+
+    audit.log(
+        tool="de_rii_case_search",
+        input_hash=input_hash,
+        output_count_or_size=len(items),
+        duration_ms=t.duration_ms,
+        status="ok",
+    )
+    return result
+
+
+# ---------------------------------------------------------------------------
+# de_rii_get_case_text
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def de_rii_get_case_text(doc_id: str) -> RiiCaseText:
+    """Fetch the full text of a decision from rechtsprechung-im-internet.de (RII).
+
+    Args:
+        doc_id: the RII document id from a ``de_rii_case_search`` result's ``doc_id``
+            (e.g. ``"JURE100055033"``), or a full ZIP URL.
+
+    Returns:
+        ``RiiCaseText`` with ``ecli`` (when the court publishes one), a German
+        ``human_readable_citation``, ``source_url``, and the full ``content``
+        (Tatbestand + Entscheidungsgruende/Gruende).
+    """
+    audit = _audit()
+    input_hash = hash_input({"doc_id": doc_id})
+
+    if not doc_id or not doc_id.strip():
+        raise ELIError("invalid_arg", "doc_id must not be empty.")
+    doc_id = doc_id.strip()
+
+    with timer() as t:
+        try:
+            async with RiiClient(base_url=_rii_base_url()) as client:
+                if doc_id.startswith("http://") or doc_id.startswith("https://"):
+                    zip_url = doc_id
+                else:
+                    toc = await client.get_toc()
+                    match = next((it for it in toc if it.doc_id == doc_id), None)
+                    if match is None:
+                        raise ELIError(
+                            "not_found",
+                            f"doc_id {doc_id!r} not found in the RII table of contents. "
+                            f"Use de_rii_case_search to locate a valid doc_id.",
+                        )
+                    zip_url = match.zip_url
+                parsed = await client.get_decision_xml(zip_url)
+        except ELIError:
+            audit.log(
+                tool="de_rii_get_case_text",
+                input_hash=input_hash,
+                output_count_or_size=0,
+                duration_ms=t.duration_ms if t.duration_ms else 0,
+                status="error",
+            )
+            raise
+        except Exception as exc:
+            audit.log(
+                tool="de_rii_get_case_text",
+                input_hash=input_hash,
+                output_count_or_size=0,
+                duration_ms=t.duration_ms if t.duration_ms else 0,
+                status="error",
+                error=f"{type(exc).__name__}: {exc}",
+            )
+            raise ELIError(
+                "upstream_error", f"RII decision fetch failed: {type(exc).__name__}: {exc}"
+            ) from exc
+
+    enriched = enrich_rii_decision(parsed)
+    content = enriched.get("full_text")
+    result = RiiCaseText(
+        doc_id=enriched.get("doknr") or doc_id,
+        ecli=(
+            enriched["ecli"]
+            if isinstance(enriched.get("ecli"), str) and enriched["ecli"].startswith("ECLI:")
+            else None
+        ),
+        eli_uri=enriched["eli_uri"],
+        court=enriched.get("gertyp"),
+        spruchkoerper=enriched.get("spruchkoerper"),
+        decision_date=enriched.get("entsch_datum"),
+        aktenzeichen=enriched.get("aktenzeichen"),
+        doktyp=enriched.get("doktyp"),
+        norm=enriched.get("norm"),
+        human_readable_citation=enriched.get("human_readable_citation"),
+        source_url=enriched["source_url"],
+        titelzeile=enriched.get("titelzeile"),
+        leitsatz=enriched.get("leitsatz"),
+        tenor=enriched.get("tenor"),
+        content=content,
+        byte_size=len(content.encode("utf-8")) if content else None,
+    )
+
+    audit.log(
+        tool="de_rii_get_case_text",
+        input_hash=input_hash,
+        output_count_or_size=result.byte_size or 0,
+        duration_ms=t.duration_ms,
+        status="ok",
+    )
+    return result
 
 
 def main() -> None:

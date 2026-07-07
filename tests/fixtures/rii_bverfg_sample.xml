@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dokument
+  SYSTEM "https://www.rechtsprechung-im-internet.de/dtd/v1/rii-dok.dtd">
+<dokument>
+   <doknr>KVRE000012542</doknr>
+   <ecli>ECLI:DE:BVerfG:2024:rk20241120.1bvr226823</ecli>
+   <gertyp>BVerfG</gertyp>
+   <gerort/>
+   <spruchkoerper>1. Senat 2. Kammer</spruchkoerper>
+   <entsch-datum>20241120</entsch-datum>
+   <aktenzeichen>1 BvR 2268/23</aktenzeichen>
+   <doktyp>Kammerbeschluss</doktyp>
+   <norm>§ 90 BVerfGG, § 251 ZPO, § 17 EnSiG</norm>
+   <vorinstanz>vorgehend BVerwG, 2. November 2023, Az: 8 A 3/23, Beschluss<br/>vorgehend BVerwG, 14. März 2023, Az: 8 A 2/22, Urteil<br/>
+   </vorinstanz>
+   <region>
+      <abk>DEU</abk>
+      <long>Bundesrepublik Deutschland</long>
+   </region>
+   <mitwirkung/>
+   <titelzeile>
+      <dl class="RspDL">
+         <dt/>
+         <dd>
+            <p>Anordnung des Ruhens eines Verfassungsbeschwerdeverfahrens</p>
+         </dd>
+      </dl>
+   </titelzeile>
+   <leitsatz/>
+   <sonstosatz/>
+   <tenor>
+      <div>
+         <dl class="RspDL">
+            <dt/>
+            <dd>
+               <p>Das Ruhen des Verfahrens wird angeordnet.</p>
+            </dd>
+         </dl>
+      </div>
+   </tenor>
+   <tatbestand/>
+   <entscheidungsgruende/>
+   <gruende>
+      <div>
+         <dl class="RspDL">
+            <dt/>
+            <dd>
+               <p style="text-align: center">
+                        <strong>I.</strong>
+                    </p>
+            </dd>
+         </dl>
+         <dl class="RspDL">
+            <dt>
+               <a name="rd_1">1</a>
+            </dt>
+            <dd>
+               <p>
+                        Die Beschwerdeführerinnen haben sich mit ihrer Verfassungsbeschwerde gegen die Anordnung einer Treuhandverwaltung gemäß § 17 EnSiG und gegen die Entscheidungen des Bundesverwaltungsgerichts, in denen die Klage der Beschwerdeführerinnen gegen die Anordnung der Treuhandverwaltung sowie deren Anhörungsrüge zurückgewiesen wurden, gewandt.</p>
+            </dd>
+         </dl>
+         <dl class="RspDL">
+            <dt>
+               <a name="rd_2">2</a>
+            </dt>
+            <dd>
+               <p>
+                        Mittlerweile haben die Beschwerdeführerinnen das Ruhen des Verfahrens beantragt und Gründe vorgetragen, aus denen sich ergibt, dass sich die Bedeutung des vorliegenden Verfahrens für die Beschwerdeführerinnen in den kommenden Monaten grundlegend verändern könnte. Die Bundesregierung, vertreten durch das Bundesministerium für Wirtschaft und Klimaschutz, befürwortet die Anordnung des Ruhens des Verfahrens.</p>
+            </dd>
+         </dl>
+         <dl class="RspDL">
+            <dt/>
+            <dd>
+               <p style="text-align: center">
+                        <strong>II.</strong>
+                    </p>
+            </dd>
+         </dl>
+         <dl class="RspDL">
+            <dt>
+               <a name="rd_3">3</a>
+            </dt>
+            <dd>
+               <p>
+                        Das Ruhen des Verfahrens ist in entsprechender Anwendung von § 251 ZPO anzuordnen (vgl. - ohne Nennung von § 251 ZPO - BVerfGE 89, 327 &lt;328&gt;). Das von den Beschwerdeführerinnen beantragte Ruhen ist zweckmäßig; öffentliche Interessen an der Fortführung des Verfahrens stehen nicht entgegen.</p>
+            </dd>
+         </dl>
+      </div>
+   </gruende>
+   <abwmeinung/>
+   <sonstlt/>
+   <identifier>http://www.rechtsprechung-im-internet.de/jportal/?quelle=jlink&amp;docid=jb-KVRE000012542&amp;psml=bsjrsprod.psml&amp;max=true</identifier>
+   <coverage>Deutschland</coverage>
+   <language>deutsch</language>
+   <publisher>BMJV</publisher>
+   <accessRights>public</accessRights>
+</dokument>

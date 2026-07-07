@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE items [
+ <!ELEMENT items (item)*>
+ <!ELEMENT item (gericht?,entsch-datum?,aktenzeichen?,link,modified)>
+ <!ELEMENT gericht (#PCDATA)>
+ <!ELEMENT entsch-datum (#PCDATA)>
+ <!ELEMENT aktenzeichen (#PCDATA)>
+ <!ELEMENT link (#PCDATA)>
+ <!ELEMENT modified (#PCDATA)>
+]>
+<!-- Small hand-picked subset of the real rii-toc.xml (fetched 2026-07-07) for offline tests. -->
+<items>
+<item>
+ <gericht>BVerfG 1. Senat 3. Kammer</gericht>
+ <entsch-datum>20240702</entsch-datum>
+ <aktenzeichen>1 BvR 2268/23</aktenzeichen>
+ <link>http://www.rechtsprechung-im-internet.de/jportal/docs/bsjrs/jb-KVRE000012542.zip</link>
+ <modified>2025-06-23T21:55:54.378Z</modified>
+</item>
+<item>
+ <gericht>BGH 9. Zivilsenat</gericht>
+ <entsch-datum>20100114</entsch-datum>
+ <aktenzeichen>IX ZB 72/08</aktenzeichen>
+ <link>http://www.rechtsprechung-im-internet.de/jportal/docs/bsjrs/jb-JURE100055033.zip</link>
+ <modified>2025-06-23T21:55:54.378Z</modified>
+</item>
+<item>
+ <gericht>BGH 2. Strafsenat</gericht>
+ <entsch-datum>20100113</entsch-datum>
+ <aktenzeichen>2 StR 428/09</aktenzeichen>
+ <link>http://www.rechtsprechung-im-internet.de/jportal/docs/bsjrs/jb-JURE100055072.zip</link>
+ <modified>2025-06-23T21:55:54.378Z</modified>
+</item>
+<item>
+ <gericht>BVerwG 9. Senat</gericht>
+ <entsch-datum>20100108</entsch-datum>
+ <aktenzeichen>9 B 3/09</aktenzeichen>
+ <link>http://www.rechtsprechung-im-internet.de/jportal/docs/bsjrs/jb-JURE100054597.zip</link>
+ <modified>2026-04-14T21:14:20.772Z</modified>
+</item>
+<item>
+ <gericht>BAG 8. Senat</gericht>
+ <entsch-datum>20240620</entsch-datum>
+ <aktenzeichen>8 AZR 124/23</aktenzeichen>
+ <link>http://www.rechtsprechung-im-internet.de/jportal/docs/bsjrs/jb-JURE269032363.zip</link>
+ <modified>2026-01-05T10:00:00.000Z</modified>
+</item>
+<item>
+ <gericht>BFH X. Senat</gericht>
+ <entsch-datum>20230815</entsch-datum>
+ <aktenzeichen>X R 5/22</aktenzeichen>
+ <link>http://www.rechtsprechung-im-internet.de/jportal/docs/bsjrs/jb-MPRE600000925.zip</link>
+ <modified>2026-01-05T10:00:00.000Z</modified>
+</item>
+<item>
+ <gericht>BSG 3. Senat</gericht>
+ <entsch-datum>20250110</entsch-datum>
+ <aktenzeichen>B 3 KR 4/24 R</aktenzeichen>
+ <link>http://www.rechtsprechung-im-internet.de/jportal/docs/bsjrs/jb-KORE730332025.zip</link>
+ <modified>2026-01-05T10:00:00.000Z</modified>
+</item>
+<item>
+ <gericht>BPatG 3. Senat</gericht>
+ <entsch-datum>20200101</entsch-datum>
+ <aktenzeichen>3 Ni 1/20</aktenzeichen>
+ <link>http://www.rechtsprechung-im-internet.de/jportal/docs/bsjrs/jb-FAKEEXAMPLE0001.zip</link>
+ <modified>2026-01-05T10:00:00.000Z</modified>
+</item>
+</items>

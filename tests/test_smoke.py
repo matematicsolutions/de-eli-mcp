@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from de_eli_mcp.models import CaseSearchQuery, SearchQuery
+from de_eli_mcp.models import CaseSearchQuery, RiiCaseQuery, SearchQuery
 from de_eli_mcp.server import (
     de_case_search,
     de_get_act,
@@ -20,6 +20,8 @@ from de_eli_mcp.server import (
     de_get_decision_text,
     de_get_text,
     de_list_publishers,
+    de_rii_case_search,
+    de_rii_get_case_text,
     de_search,
 )
 
@@ -97,4 +99,46 @@ async def test_smoke_get_decision_text_html() -> None:
     assert text.format == "html"
     assert text.content is not None and len(text.content) > 0
     assert text.source_url.startswith("https://")
+    assert text.byte_size and text.byte_size > 0
+
+
+# --- RII (rechtsprechung-im-internet.de) smoke tests --------------------------
+# These hit the live ~23 MB rii-toc.xml (cached client-side after the first call
+# within a test session/process) and one live decision ZIP per court.
+
+
+@pytest.mark.asyncio
+async def test_smoke_rii_case_search_bverfg() -> None:
+    result = await de_rii_case_search(RiiCaseQuery(court="BVerfG", limit=5))
+    assert result.total_items > 0, "Expected BVerfG hits in the live RII TOC"
+    assert len(result.items) > 0
+    for item in result.items:
+        assert item.court_type == "BVerfG"
+        assert item.doc_id, f"missing doc_id in {item}"
+        assert item.zip_url.startswith("http")
+
+
+@pytest.mark.asyncio
+async def test_smoke_rii_case_search_each_target_court_has_hits() -> None:
+    """All six courts named in the task (BVerfG/BGH/BAG/BFH/BVerwG/BSG) must be
+    non-empty in the live RII TOC - this is the whole point of the connector."""
+    for court in ("BVerfG", "BGH", "BAG", "BFH", "BVerwG", "BSG"):
+        result = await de_rii_case_search(RiiCaseQuery(court=court, limit=1))
+        assert result.total_items > 0, f"Expected at least one {court} decision in live RII"
+
+
+@pytest.mark.asyncio
+async def test_smoke_rii_get_case_text_bverfg() -> None:
+    search = await de_rii_case_search(RiiCaseQuery(court="BVerfG", limit=1))
+    assert search.items, "Need at least one BVerfG hit to fetch full text"
+    doc_id = search.items[0].doc_id
+
+    text = await de_rii_get_case_text(doc_id)
+    assert text.doc_id == doc_id
+    assert text.eli_uri, "missing eli_uri"
+    assert text.court == "BVerfG"
+    assert text.human_readable_citation is not None
+    assert "BVerfG" in text.human_readable_citation
+    assert text.source_url.startswith("http")
+    assert text.content is not None and len(text.content) > 0
     assert text.byte_size and text.byte_size > 0

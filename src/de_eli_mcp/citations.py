@@ -249,3 +249,62 @@ def enrich_decision_payload(payload: dict[str, Any], base_url: str) -> dict[str,
         f"{base_url}{at_id}" if isinstance(at_id, str) and at_id.strip() else base_url
     )
     return out
+
+
+# --- Case law via rechtsprechung-im-internet.de (RII) -------------------------
+
+
+def rii_human_readable_citation(payload: dict[str, Any]) -> str | None:
+    """German case-law citation from an RII decision dict (``parse_decision_xml`` output),
+    e.g. ``'BVerfG, Beschluss vom 20.11.2024 - 1 BvR 2268/23'``.
+
+    Convention: {Gericht}, {Doktyp} vom {DD.MM.YYYY} - {Aktenzeichen}. Falls back
+    gracefully if a field is missing (still returns whatever is available).
+    """
+    court = payload.get("gertyp")
+    doktyp = payload.get("doktyp")
+    date_de = _format_iso_date_de(_rii_date_to_iso(payload.get("entsch_datum")))
+    aktenzeichen = payload.get("aktenzeichen")
+
+    head = ", ".join(p for p in (court, doktyp) if isinstance(p, str) and p.strip())
+    parts = [p for p in (head or None, f"vom {date_de}" if date_de else None) if p]
+    citation = " ".join(parts) if parts else None
+    if citation and aktenzeichen:
+        return f"{citation} - {aktenzeichen}"
+    return citation or aktenzeichen
+
+
+def _rii_date_to_iso(raw: str | None) -> str | None:
+    """RII dates are 'YYYYMMDD' (no separators); convert to ISO 'YYYY-MM-DD'."""
+    if not isinstance(raw, str) or len(raw) != 8 or not raw.isdigit():
+        return None
+    return f"{raw[0:4]}-{raw[4:6]}-{raw[6:8]}"
+
+
+def rii_source_url(payload: dict[str, Any], fallback_zip_url: str | None = None) -> str:
+    """Canonical, independently-openable URL for an RII decision.
+
+    Prefers the ``identifier`` field (a stable jportal deep link into the RII viewer);
+    falls back to the ZIP URL the document was fetched from.
+    """
+    identifier = payload.get("identifier")
+    if isinstance(identifier, str) and identifier.strip():
+        return identifier.strip()
+    zip_url = fallback_zip_url or payload.get("_source_zip_url")
+    if isinstance(zip_url, str) and zip_url.strip():
+        return zip_url.strip()
+    return "https://www.rechtsprechung-im-internet.de"
+
+
+def enrich_rii_decision(payload: dict[str, Any]) -> dict[str, Any]:
+    """Attach ``eli_uri`` (ECLI when present, else RII doknr-based URI),
+    ``human_readable_citation`` and ``source_url`` to an RII decision dict.
+    """
+    out = dict(payload)
+    ecli = payload.get("ecli")
+    out["eli_uri"] = (
+        ecli.strip() if isinstance(ecli, str) and ecli.strip() else None
+    ) or f"rii:{payload.get('doknr', 'unknown')}"
+    out["human_readable_citation"] = rii_human_readable_citation(payload)
+    out["source_url"] = rii_source_url(payload)
+    return out
