@@ -308,3 +308,104 @@ def enrich_rii_decision(payload: dict[str, Any]) -> dict[str, Any]:
     out["human_readable_citation"] = rii_human_readable_citation(payload)
     out["source_url"] = rii_source_url(payload)
     return out
+
+
+# --- Case law via Open Legal Data (de.openlegaldata.io) - feature 004 ---------
+
+
+def oldp_human_readable_citation(item: dict[str, Any]) -> str | None:
+    """German case-law citation from a normalised OLDP case dict, e.g.
+    ``'Landgericht Nuernberg-Fuerth, Endurteil vom 21.05.2026 - 8 O 4860/25'``.
+    """
+    court = item.get("court_name")
+    decision_type = item.get("decision_type")
+    date_de = _format_iso_date_de(item.get("date"))
+    file_number = item.get("file_number")
+
+    head = ", ".join(p for p in (court, decision_type) if isinstance(p, str) and p.strip())
+    parts = [p for p in (head or None, f"vom {date_de}" if date_de else None) if p]
+    citation = " ".join(parts) if parts else None
+    if citation and file_number:
+        return f"{citation} - {file_number}"
+    return citation or file_number
+
+
+def oldp_source_url(item: dict[str, Any], base_url: str) -> str:
+    """Canonical, independently-openable URL for an OLDP case (the public case page)."""
+    slug = item.get("slug")
+    if isinstance(slug, str) and slug.strip():
+        return f"{base_url}/case/{slug.strip()}/"
+    case_id = item.get("id")
+    if case_id is not None:
+        return f"{base_url}/api/cases/{case_id}/"
+    return base_url
+
+
+def enrich_oldp_case(item: dict[str, Any], base_url: str) -> dict[str, Any]:
+    """Attach ``eli_uri`` (ECLI when present, else an ``oldp:`` URI),
+    ``human_readable_citation`` and ``source_url`` to a normalised OLDP case dict.
+    """
+    out = dict(item)
+    ecli = item.get("ecli")
+    out["eli_uri"] = (
+        ecli.strip() if isinstance(ecli, str) and ecli.strip() else None
+    ) or f"oldp:case/{item.get('slug') or item.get('id') or 'unknown'}"
+    out["human_readable_citation"] = oldp_human_readable_citation(item)
+    out["source_url"] = oldp_source_url(item, base_url=base_url)
+    return out
+
+
+# --- Parliamentary documents via Bundestag DIP - feature 004 ------------------
+
+_DIP_DOC_ABBREV = {
+    "Drucksache": "Drs.",
+    "Plenarprotokoll": "PlPr",
+}
+
+
+def dip_human_readable_citation(doc: dict[str, Any]) -> str | None:
+    """German parliamentary citation from a DIP entity, e.g. ``'BT-Drs. 20/1'``,
+    ``'BR-PlPr 1051'``; a Vorgang falls back to ``'{vorgangstyp}: {titel}'``.
+    """
+    herausgeber = doc.get("herausgeber")
+    dokumentart = doc.get("dokumentart")
+    dokumentnummer = doc.get("dokumentnummer")
+    if (
+        isinstance(herausgeber, str)
+        and isinstance(dokumentart, str)
+        and isinstance(dokumentnummer, str)
+        and dokumentart in _DIP_DOC_ABBREV
+    ):
+        return f"{herausgeber}-{_DIP_DOC_ABBREV[dokumentart]} {dokumentnummer}"
+    titel = doc.get("titel")
+    vorgangstyp = doc.get("vorgangstyp")
+    if isinstance(titel, str) and titel.strip():
+        if isinstance(vorgangstyp, str) and vorgangstyp.strip():
+            return f"{vorgangstyp}: {titel.strip()}"
+        return titel.strip()
+    return None
+
+
+def dip_source_url(doc: dict[str, Any]) -> str:
+    """Canonical URL for a DIP entity - the official PDF (``fundstelle.pdf_url``)
+    when present, else the DIP portal search page.
+    """
+    fundstelle = doc.get("fundstelle")
+    if isinstance(fundstelle, dict):
+        pdf_url = fundstelle.get("pdf_url")
+        if isinstance(pdf_url, str) and pdf_url.strip():
+            return pdf_url.strip()
+    return "https://dip.bundestag.de"
+
+
+def enrich_dip_document(doc: dict[str, Any]) -> dict[str, Any]:
+    """Attach ``eli_uri`` (a stable ``dip:`` URI - DIP has no ELI/ECLI),
+    ``human_readable_citation`` and ``source_url`` to a DIP entity dict.
+    """
+    out = dict(doc)
+    doc_id = doc.get("id", "unknown")
+    typ = (doc.get("dokumentart") or doc.get("vorgangstyp") or "entity").lower()
+    out["eli_uri"] = f"dip:{typ}/{doc_id}"
+    out["human_readable_citation"] = dip_human_readable_citation(doc)
+    out["source_url"] = dip_source_url(doc)
+    return out

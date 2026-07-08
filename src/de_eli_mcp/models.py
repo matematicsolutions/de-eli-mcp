@@ -249,3 +249,176 @@ class RiiCaseText(_Tolerant):
     content: str | None = Field(default=None, description="Full text (Tatbestand + Gruende).")
     byte_size: int | None = None
     note: str = RII_NOTE
+
+
+# --- Case law via Open Legal Data (de.openlegaldata.io) - feature 004 ---------
+
+OLDP_NOTE = (
+    "Source: Open Legal Data (de.openlegaldata.io), a community open-data aggregator "
+    "of German case law across all court levels (federal AND state courts) - database "
+    "under ODbL v1.0, decisions themselves gemeinfrei per § 5 UrhG. It is NOT an "
+    "official government service and does not claim completeness; for the six federal "
+    "supreme/constitutional courts prefer de_rii_case_search (official, complete). "
+    "OLDP's unique value is the state-court layer (Oberlandesgerichte, Landgerichte, "
+    "Amtsgerichte, state administrative/social/labor/finance courts)."
+)
+
+
+class OldpCaseQuery(_Tolerant):
+    """Arguments for the ``de_oldp_case_search`` tool."""
+
+    text: str | None = Field(
+        default=None,
+        description=(
+            "Full-text search over decision content (Elasticsearch). When set, the "
+            "metadata filters below are IGNORED (different upstream endpoint)."
+        ),
+    )
+    court_slug: str | None = Field(
+        default=None,
+        description="Court slug, e.g. 'bverwg', 'ovgnrw', 'lg-nurnberg-furth'.",
+    )
+    file_number: str | None = Field(
+        default=None, description="EXACT docket number match, e.g. '8 O 4860/25'."
+    )
+    date_after: str | None = Field(default=None, description="ISO date, inclusive lower bound.")
+    date_before: str | None = Field(default=None, description="ISO date, inclusive upper bound.")
+    page: int = Field(default=1, ge=1)
+
+
+class OldpCaseInfo(_Tolerant):
+    """Lightweight OLDP case record (normalised across both search shapes)."""
+
+    id: int | None = None
+    slug: str | None = None
+    court_name: str | None = None
+    court_slug: str | None = None
+    court_jurisdiction: str | None = None
+    court_level_of_appeal: str | None = None
+    file_number: str | None = None
+    date: str | None = None
+    decision_type: str | None = None
+    ecli: str | None = None
+    snippets: list[str] | None = None
+
+    eli_uri: str | None = None
+    human_readable_citation: str | None = None
+    source_url: str | None = None
+
+
+class OldpCaseSearchResult(_Tolerant):
+    """Result of ``de_oldp_case_search``."""
+
+    total_items: int
+    items: list[OldpCaseInfo] = Field(default_factory=list)
+    query_echo: OldpCaseQuery | None = None
+    note: str = OLDP_NOTE
+
+
+class OldpCaseText(_Tolerant):
+    """Result of ``de_oldp_get_case``."""
+
+    id: int | None = None
+    slug: str | None = None
+    eli_uri: str
+    ecli: str | None = None
+    court_name: str | None = None
+    file_number: str | None = None
+    date: str | None = None
+    decision_type: str | None = None
+    human_readable_citation: str | None = None
+    source_url: str
+    content: str | None = Field(default=None, description="Full decision text (HTML).")
+    byte_size: int | None = None
+    note: str = OLDP_NOTE
+
+
+# --- Parliamentary documents via Bundestag DIP - feature 004 ------------------
+
+DIP_NOTE = (
+    "Source: DIP (dip.bundestag.de), the German parliament's official documentation "
+    "system, via its documented public API. Covers Bundestag and Bundesrat printed "
+    "papers (Drucksachen), plenary transcripts and legislative procedures. DIP records "
+    "legislative history - it does not carry consolidated statute text (use de_search "
+    "for that)."
+)
+
+DipResource = Literal[
+    "drucksache", "drucksache-text", "plenarprotokoll", "plenarprotokoll-text", "vorgang"
+]
+
+
+class DipSearchQuery(_Tolerant):
+    """Arguments for the ``de_dip_search`` tool."""
+
+    resource: DipResource = Field(
+        default="drucksache",
+        description=(
+            "DIP resource type. Use 'drucksache' / 'plenarprotokoll' for metadata, "
+            "the '-text' variants to include full text in results, 'vorgang' for "
+            "legislative procedures."
+        ),
+    )
+    titel: str | None = Field(default=None, description="Match against the title.")
+    dokumentnummer: str | None = Field(
+        default=None, description="Document number, e.g. '20/1' (exact)."
+    )
+    zuordnung: str | None = Field(default=None, description="'BT' (Bundestag) or 'BR' (Bundesrat).")
+    wahlperiode: int | None = Field(default=None, description="Electoral term, e.g. 20.")
+    vorgangstyp: str | None = Field(
+        default=None, description="Procedure type (vorgang only), e.g. 'Gesetzgebung'."
+    )
+    date_start: str | None = Field(default=None, description="ISO date, inclusive.")
+    date_end: str | None = Field(default=None, description="ISO date, inclusive.")
+    cursor: str | None = Field(
+        default=None,
+        description="Opaque pagination cursor from the previous result; end is reached "
+        "when the cursor stops changing.",
+    )
+
+
+class DipDocumentInfo(_Tolerant):
+    """Lightweight DIP entity record."""
+
+    id: str | None = None
+    dokumentart: str | None = None
+    drucksachetyp: str | None = None
+    vorgangstyp: str | None = None
+    dokumentnummer: str | None = None
+    wahlperiode: int | None = None
+    herausgeber: str | None = None
+    titel: str | None = None
+    datum: str | None = None
+    text: str | None = None
+
+    eli_uri: str | None = None
+    human_readable_citation: str | None = None
+    source_url: str | None = None
+
+
+class DipSearchResult(_Tolerant):
+    """Result of ``de_dip_search``."""
+
+    total_items: int
+    items: list[DipDocumentInfo] = Field(default_factory=list)
+    cursor: str | None = None
+    query_echo: DipSearchQuery | None = None
+    note: str = DIP_NOTE
+
+
+class DipDocumentText(_Tolerant):
+    """Result of ``de_dip_get_document``."""
+
+    id: str | None = None
+    eli_uri: str
+    dokumentart: str | None = None
+    dokumentnummer: str | None = None
+    wahlperiode: int | None = None
+    herausgeber: str | None = None
+    titel: str | None = None
+    datum: str | None = None
+    human_readable_citation: str | None = None
+    source_url: str
+    content: str | None = Field(default=None, description="Full document text (plain).")
+    byte_size: int | None = None
+    note: str = DIP_NOTE

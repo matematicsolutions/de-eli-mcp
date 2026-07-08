@@ -1,0 +1,4 @@
+{
+  "allow_paths": ["tests/fixtures/"],
+  "note": "Fixtures are verbatim public API responses (de.openlegaldata.io, search.dip.bundestag.de). German docket numbers / date strings trigger Polish REGON/NIP lookalike patterns - foreign public identifiers, not PII."
+}

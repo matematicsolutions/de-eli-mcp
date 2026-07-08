@@ -33,7 +33,7 @@ from .cache import HttpCache
 DEFAULT_BASE_URL = "https://www.rechtsprechung-im-internet.de"
 DEFAULT_TOC_PATH = "/rii-toc.xml"
 DEFAULT_TIMEOUT = httpx.Timeout(120.0, connect=10.0)
-USER_AGENT = "de-eli-mcp/0.2.0 (+https://github.com/matematicsolutions/de-eli-mcp)"
+USER_AGENT = "de-eli-mcp/0.3.0 (+https://github.com/matematicsolutions/de-eli-mcp)"
 
 _RETRY_STATUS = frozenset({429, 500, 502, 503, 504})
 _MAX_ATTEMPTS = 3

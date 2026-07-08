@@ -12,14 +12,24 @@ from __future__ import annotations
 
 import pytest
 
-from de_eli_mcp.models import CaseSearchQuery, RiiCaseQuery, SearchQuery
+from de_eli_mcp.models import (
+    CaseSearchQuery,
+    DipSearchQuery,
+    OldpCaseQuery,
+    RiiCaseQuery,
+    SearchQuery,
+)
 from de_eli_mcp.server import (
     de_case_search,
+    de_dip_get_document,
+    de_dip_search,
     de_get_act,
     de_get_decision,
     de_get_decision_text,
     de_get_text,
     de_list_publishers,
+    de_oldp_case_search,
+    de_oldp_get_case,
     de_rii_case_search,
     de_rii_get_case_text,
     de_search,
@@ -78,8 +88,11 @@ async def test_smoke_case_search() -> None:
     assert result.total_items > 0, "Expected case-law hits for 'Datenschutz'"
     assert len(result.items) > 0
     for item in result.items:
-        assert item.ecli is not None, "missing ecli"
-        assert item.ecli.startswith("ECLI:DE:"), f"bad ecli: {item.ecli!r}"
+        # NeuRIS beta drops `ecli` for some decisions it previously served with one
+        # (documented in README - KARE600069049 is the live example); when present
+        # it must be well-formed.
+        if item.ecli is not None:
+            assert item.ecli.startswith("ECLI:DE:"), f"bad ecli: {item.ecli!r}"
         assert item.human_readable_citation is not None
         assert item.source_url is not None
 
@@ -87,7 +100,10 @@ async def test_smoke_case_search() -> None:
 @pytest.mark.asyncio
 async def test_smoke_get_decision() -> None:
     decision = await de_get_decision(BAG_DECISION)
-    assert decision.ecli is not None and decision.ecli.startswith("ECLI:DE:BAG:")
+    # NeuRIS beta has been observed serving this decision both with and without its
+    # ECLI (ECLI:DE:BAG:2024:...) - RII serves it with the full ECLI either way.
+    if decision.ecli is not None:
+        assert decision.ecli.startswith("ECLI:DE:BAG:")
     assert decision.human_readable_citation is not None
     assert "BAG" in decision.human_readable_citation
     assert decision.source_url is not None and decision.source_url.startswith("https://")
@@ -142,3 +158,82 @@ async def test_smoke_rii_get_case_text_bverfg() -> None:
     assert text.source_url.startswith("http")
     assert text.content is not None and len(text.content) > 0
     assert text.byte_size and text.byte_size > 0
+
+
+# --- Open Legal Data (de.openlegaldata.io) smoke tests - feature 004 -----------
+
+
+@pytest.mark.asyncio
+async def test_smoke_oldp_metadata_filter_narrows() -> None:
+    """court__slug must genuinely narrow the result set (guards against the
+    silent-no-op filter failure mode: date__gte returns the unfiltered total)."""
+    unfiltered = await de_oldp_case_search(OldpCaseQuery())
+    filtered = await de_oldp_case_search(OldpCaseQuery(court_slug="bverwg"))
+    assert unfiltered.total_items > 100_000, "OLDP total unexpectedly small"
+    assert 0 < filtered.total_items < unfiltered.total_items
+    for item in filtered.items:
+        assert item.court_slug == "bverwg"
+        assert item.human_readable_citation is not None
+        assert item.source_url is not None and item.source_url.startswith("https://")
+
+
+@pytest.mark.asyncio
+async def test_smoke_oldp_fulltext_search_returns_snippets() -> None:
+    result = await de_oldp_case_search(OldpCaseQuery(text="Mietminderung"))
+    assert result.total_items > 0
+    assert result.items
+    assert any(item.snippets for item in result.items), "expected highlight snippets"
+
+
+@pytest.mark.asyncio
+async def test_smoke_oldp_get_case_full_text() -> None:
+    search = await de_oldp_case_search(OldpCaseQuery(court_slug="bverwg"))
+    assert search.items, "Need at least one BVerwG hit in OLDP"
+    ref = str(search.items[0].id)
+
+    case = await de_oldp_get_case(ref)
+    assert case.eli_uri, "missing eli_uri"
+    assert case.human_readable_citation is not None
+    assert case.source_url.startswith("https://")
+    assert case.content is not None and len(case.content) > 0
+    assert case.byte_size and case.byte_size > 0
+
+
+# --- Bundestag DIP smoke tests - feature 004 ------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_smoke_dip_search_exact_dokumentnummer() -> None:
+    result = await de_dip_search(
+        DipSearchQuery(resource="drucksache", dokumentnummer="20/1", zuordnung="BT")
+    )
+    assert result.total_items == 1, (
+        f"expected exactly 1 hit for BT-Drs. 20/1, got {result.total_items}"
+    )
+    item = result.items[0]
+    assert item.human_readable_citation == "BT-Drs. 20/1"
+    assert item.source_url is not None and item.source_url.endswith(".pdf")
+
+
+@pytest.mark.asyncio
+async def test_smoke_dip_titel_filter_narrows() -> None:
+    unfiltered = await de_dip_search(DipSearchQuery(resource="drucksache"))
+    filtered = await de_dip_search(DipSearchQuery(resource="drucksache", titel="Datenschutz"))
+    assert unfiltered.total_items > 100_000, "DIP drucksache total unexpectedly small"
+    assert 0 < filtered.total_items < unfiltered.total_items
+
+
+@pytest.mark.asyncio
+async def test_smoke_dip_get_document_text() -> None:
+    search = await de_dip_search(
+        DipSearchQuery(resource="drucksache", dokumentnummer="20/1", zuordnung="BT")
+    )
+    assert search.items
+    doc_id = search.items[0].id
+    assert doc_id
+
+    doc = await de_dip_get_document("drucksache-text", doc_id)
+    assert doc.human_readable_citation == "BT-Drs. 20/1"
+    assert doc.source_url.startswith("https://")
+    assert doc.content is not None and len(doc.content) > 1000
+    assert doc.byte_size and doc.byte_size > 0

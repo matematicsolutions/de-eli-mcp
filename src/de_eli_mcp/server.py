@@ -23,12 +23,17 @@ from mcp.types import ToolAnnotations
 from .audit import AuditLogger, hash_input, timer
 from .citations import (
     enrich_decision_payload,
+    enrich_dip_document,
     enrich_legislation_payload,
+    enrich_oldp_case,
     enrich_rii_decision,
     parse_eli,
     pick_encoding_content_url,
 )
 from .client import DEFAULT_BASE_URL, NeurisClient, extract_search_items
+from .dip_client import DEFAULT_BASE_URL as DIP_DEFAULT_BASE_URL
+from .dip_client import PUBLIC_API_KEY as DIP_PUBLIC_API_KEY
+from .dip_client import DipClient
 from .models import (
     Act,
     ActInfo,
@@ -38,6 +43,14 @@ from .models import (
     Decision,
     DecisionInfo,
     DecisionText,
+    DipDocumentInfo,
+    DipDocumentText,
+    DipSearchQuery,
+    DipSearchResult,
+    OldpCaseInfo,
+    OldpCaseQuery,
+    OldpCaseSearchResult,
+    OldpCaseText,
     Publisher,
     RiiCaseInfo,
     RiiCaseQuery,
@@ -47,6 +60,8 @@ from .models import (
     SearchResult,
     TextFormat,
 )
+from .oldp_client import DEFAULT_BASE_URL as OLDP_DEFAULT_BASE_URL
+from .oldp_client import OldpClient, normalize_case_item
 from .rii_client import DEFAULT_BASE_URL as RII_DEFAULT_BASE_URL
 from .rii_client import RiiClient, search_toc
 
@@ -86,6 +101,16 @@ This MCP server exposes the German NeuRIS API (rechtsinformationen.bund.de) - of
 10. `de_rii_get_case_text` - full text of one decision by `doc_id` (from a `de_rii_case_search` result, e.g. `JURE100055033`). Returns `titelzeile`, `leitsatz`, `tenor` and the full `content` (Tatbestand + Entscheidungsgruende/Gruende), plus the real `ecli` when the court publishes one.
 
 For BVerfG, BGH, BAG, BFH, BVerwG or BSG, ALWAYS prefer `de_rii_case_search`/`de_rii_get_case_text` over `de_case_search` - RII is the complete, non-beta source for these six courts.
+
+### Case law (STATE courts + full-text search, Open Legal Data)
+11. `de_oldp_case_search` - search Open Legal Data (de.openlegaldata.io), a community open-data aggregator of ~424k German decisions from ~1 100 courts of ALL levels - this is the only tool here that covers STATE courts (Oberlandesgerichte, Landgerichte, Amtsgerichte, state administrative/social/labor/finance courts) and the only one with FULL-TEXT search (`text` parameter). Metadata filters: `court_slug` (e.g. 'ovgnrw'), `file_number` (exact docket number), `date_after`/`date_before`. When `text` is set the metadata filters are ignored (different upstream endpoint).
+12. `de_oldp_get_case` - full decision text (HTML) by numeric `case_ref` id or slug from a `de_oldp_case_search` result.
+
+Routing rule for case law: federal supreme/constitutional courts -> RII tools (official, complete); state courts or any full-text hunt -> OLDP tools (community, broad, not official); NeuRIS `de_case_search` last (beta slice). OLDP is ODbL-licensed open data, not an official government service - say so when completeness matters.
+
+### Parliamentary documents / legislative history (Bundestag DIP)
+13. `de_dip_search` - search DIP (dip.bundestag.de), the parliament's official documentation system: `resource` = 'drucksache' (bills, motions, reports; ~287k), 'plenarprotokoll' (plenary transcripts), 'vorgang' (legislative procedures; ~335k), or the '-text' variants to include full text. Filters: `titel`, `dokumentnummer` (e.g. '20/1'), `zuordnung` ('BT'/'BR'), `wahlperiode`, `vorgangstyp`, `date_start`/`date_end`. Pagination via opaque `cursor` (repeat the query with the returned cursor; the end is reached when it stops changing).
+14. `de_dip_get_document` - one DIP entity by `resource` + `doc_id`; use 'drucksache-text'/'plenarprotokoll-text' to get the full `text`. Gesetzesbegruendungen in Drucksachen are the standard German aid of statutory interpretation - cite as e.g. "BT-Drs. 20/1" with the official PDF `source_url`.
 
 ## Hard constraints
 
@@ -840,6 +865,355 @@ async def de_rii_get_case_text(doc_id: str) -> RiiCaseText:
 
     audit.log(
         tool="de_rii_get_case_text",
+        input_hash=input_hash,
+        output_count_or_size=result.byte_size or 0,
+        duration_ms=t.duration_ms,
+        status="ok",
+    )
+    return result
+
+
+# ---------------------------------------------------------------------------
+# de_oldp_case_search (feature 004)
+# ---------------------------------------------------------------------------
+
+
+def _oldp_base_url() -> str:
+    return os.environ.get("DE_OLDP_BASE_URL", OLDP_DEFAULT_BASE_URL).rstrip("/")
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def de_oldp_case_search(query: OldpCaseQuery) -> OldpCaseSearchResult:
+    """Search German case law across ALL court levels via Open Legal Data.
+
+    Open Legal Data (de.openlegaldata.io) is a community open-data aggregator
+    (~424k decisions from ~1 100 courts at check). It is the only source here that
+    covers STATE courts and the only one with full-text search. Database ODbL v1.0;
+    the decisions themselves are gemeinfrei (§ 5 UrhG). Not an official service -
+    prefer the RII tools for the six federal supreme/constitutional courts.
+
+    Args:
+        query: ``OldpCaseQuery`` - text (full-text; ignores the other filters),
+            court_slug, file_number (exact), date_after/date_before, page.
+
+    Returns:
+        ``OldpCaseSearchResult`` with ``total_items`` and ``items: list[OldpCaseInfo]``,
+        each carrying an ``id``/``slug`` usable with ``de_oldp_get_case``.
+    """
+    audit = _audit()
+    input_hash = hash_input(query.model_dump(mode="json"))
+    base = _oldp_base_url()
+
+    with timer() as t:
+        try:
+            async with OldpClient(base_url=base) as client:
+                raw = await client.search_cases(
+                    text=query.text,
+                    court_slug=query.court_slug,
+                    file_number=query.file_number,
+                    date_after=query.date_after,
+                    date_before=query.date_before,
+                    page=query.page,
+                )
+        except Exception as exc:
+            audit.log(
+                tool="de_oldp_case_search",
+                input_hash=input_hash,
+                output_count_or_size=0,
+                duration_ms=t.duration_ms if t.duration_ms else 0,
+                status="error",
+                error=f"{type(exc).__name__}: {exc}",
+            )
+            raise ELIError(
+                "upstream_error", f"Open Legal Data search failed: {type(exc).__name__}: {exc}"
+            ) from exc
+
+    items = [
+        OldpCaseInfo.model_validate(enrich_oldp_case(normalize_case_item(it), base_url=base))
+        for it in raw.get("results") or []
+    ]
+    result = OldpCaseSearchResult(
+        total_items=int(raw.get("count") or 0), items=items, query_echo=query
+    )
+
+    audit.log(
+        tool="de_oldp_case_search",
+        input_hash=input_hash,
+        output_count_or_size=len(items),
+        duration_ms=t.duration_ms,
+        status="ok",
+    )
+    return result
+
+
+# ---------------------------------------------------------------------------
+# de_oldp_get_case
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def de_oldp_get_case(case_ref: str) -> OldpCaseText:
+    """Fetch the full text of one decision from Open Legal Data.
+
+    Args:
+        case_ref: a numeric OLDP case id (e.g. ``"521203"``) or a slug
+            (e.g. ``"lg-nurnberg-furth-2026-05-21-8-o-486025"``) from a
+            ``de_oldp_case_search`` result.
+
+    Returns:
+        ``OldpCaseText`` with ``eli_uri`` (the ECLI when the source carries one),
+        a German ``human_readable_citation``, ``source_url`` (the public case page)
+        and the full ``content`` (decision HTML).
+    """
+    audit = _audit()
+    input_hash = hash_input({"case_ref": case_ref})
+    base = _oldp_base_url()
+
+    if not case_ref or not case_ref.strip():
+        raise ELIError("invalid_arg", "case_ref must not be empty.")
+
+    with timer() as t:
+        try:
+            async with OldpClient(base_url=base) as client:
+                raw = await client.get_case(case_ref)
+        except LookupError as exc:
+            audit.log(
+                tool="de_oldp_get_case",
+                input_hash=input_hash,
+                output_count_or_size=0,
+                duration_ms=t.duration_ms if t.duration_ms else 0,
+                status="error",
+            )
+            raise ELIError(
+                "not_found",
+                f"Case {case_ref!r} not found in Open Legal Data. "
+                f"Use de_oldp_case_search to locate a valid id or slug.",
+            ) from exc
+        except httpx.HTTPStatusError as exc:
+            audit.log(
+                tool="de_oldp_get_case",
+                input_hash=input_hash,
+                output_count_or_size=0,
+                duration_ms=t.duration_ms if t.duration_ms else 0,
+                status="error",
+                error=f"{type(exc).__name__}: {exc}",
+            )
+            if exc.response.status_code == 404:
+                raise ELIError(
+                    "not_found",
+                    f"Case {case_ref!r} not found in Open Legal Data. "
+                    f"Use de_oldp_case_search to locate a valid id or slug.",
+                ) from exc
+            raise ELIError(
+                "upstream_error", f"Open Legal Data error: {type(exc).__name__}: {exc}"
+            ) from exc
+        except Exception as exc:
+            audit.log(
+                tool="de_oldp_get_case",
+                input_hash=input_hash,
+                output_count_or_size=0,
+                duration_ms=t.duration_ms if t.duration_ms else 0,
+                status="error",
+                error=f"{type(exc).__name__}: {exc}",
+            )
+            raise ELIError(
+                "upstream_error", f"Open Legal Data error: {type(exc).__name__}: {exc}"
+            ) from exc
+
+    enriched = enrich_oldp_case(normalize_case_item(raw), base_url=base)
+    content = raw.get("content")
+    result = OldpCaseText(
+        id=enriched.get("id"),
+        slug=enriched.get("slug"),
+        eli_uri=enriched["eli_uri"],
+        ecli=enriched.get("ecli"),
+        court_name=enriched.get("court_name"),
+        file_number=enriched.get("file_number"),
+        date=enriched.get("date"),
+        decision_type=enriched.get("decision_type"),
+        human_readable_citation=enriched.get("human_readable_citation"),
+        source_url=enriched["source_url"],
+        content=content if isinstance(content, str) else None,
+        byte_size=len(content.encode("utf-8")) if isinstance(content, str) else None,
+    )
+
+    audit.log(
+        tool="de_oldp_get_case",
+        input_hash=input_hash,
+        output_count_or_size=result.byte_size or 0,
+        duration_ms=t.duration_ms,
+        status="ok",
+    )
+    return result
+
+
+# ---------------------------------------------------------------------------
+# de_dip_search (feature 004)
+# ---------------------------------------------------------------------------
+
+
+def _dip_base_url() -> str:
+    return os.environ.get("DE_DIP_BASE_URL", DIP_DEFAULT_BASE_URL).rstrip("/")
+
+
+def _dip_api_key() -> str:
+    return os.environ.get("DE_DIP_API_KEY", DIP_PUBLIC_API_KEY)
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def de_dip_search(query: DipSearchQuery) -> DipSearchResult:
+    """Search the Bundestag DIP - Germany's official parliamentary documentation.
+
+    Covers Drucksachen (bills, motions, reports, government answers), plenary
+    transcripts and legislative procedures of Bundestag and Bundesrat. Legislative
+    history (Gesetzesbegruendungen) is a standard aid of German statutory
+    interpretation. Uses the documented public API key by default (rotates ~yearly;
+    override with ``DE_DIP_API_KEY``).
+
+    Args:
+        query: ``DipSearchQuery`` - resource (drucksache / plenarprotokoll / vorgang /
+            '-text' variants), titel, dokumentnummer, zuordnung ('BT'/'BR'),
+            wahlperiode, vorgangstyp, date_start/date_end, cursor.
+
+    Returns:
+        ``DipSearchResult`` with ``total_items`` (numFound), ``items`` and the
+        pagination ``cursor``.
+    """
+    audit = _audit()
+    input_hash = hash_input(query.model_dump(mode="json"))
+
+    with timer() as t:
+        try:
+            async with DipClient(base_url=_dip_base_url(), api_key=_dip_api_key()) as client:
+                raw = await client.search(
+                    query.resource,
+                    titel=query.titel,
+                    dokumentnummer=query.dokumentnummer,
+                    zuordnung=query.zuordnung,
+                    wahlperiode=query.wahlperiode,
+                    vorgangstyp=query.vorgangstyp,
+                    date_start=query.date_start,
+                    date_end=query.date_end,
+                    cursor=query.cursor,
+                )
+        except ValueError as exc:
+            raise ELIError("invalid_arg", str(exc)) from exc
+        except Exception as exc:
+            audit.log(
+                tool="de_dip_search",
+                input_hash=input_hash,
+                output_count_or_size=0,
+                duration_ms=t.duration_ms if t.duration_ms else 0,
+                status="error",
+                error=f"{type(exc).__name__}: {exc}",
+            )
+            raise ELIError(
+                "upstream_error", f"DIP API error: {type(exc).__name__}: {exc}"
+            ) from exc
+
+    items = [
+        DipDocumentInfo.model_validate(enrich_dip_document(doc))
+        for doc in raw.get("documents") or []
+    ]
+    result = DipSearchResult(
+        total_items=int(raw.get("numFound") or 0),
+        items=items,
+        cursor=raw.get("cursor"),
+        query_echo=query,
+    )
+
+    audit.log(
+        tool="de_dip_search",
+        input_hash=input_hash,
+        output_count_or_size=len(items),
+        duration_ms=t.duration_ms,
+        status="ok",
+    )
+    return result
+
+
+# ---------------------------------------------------------------------------
+# de_dip_get_document
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool(annotations=READ_ONLY)
+async def de_dip_get_document(resource: str, doc_id: str) -> DipDocumentText:
+    """Fetch one entity from the Bundestag DIP by id.
+
+    Args:
+        resource: ``"drucksache"``, ``"drucksache-text"``, ``"plenarprotokoll"``,
+            ``"plenarprotokoll-text"`` or ``"vorgang"``. Use a ``-text`` variant to
+            get the full document text.
+        doc_id: the DIP entity id from a ``de_dip_search`` result (e.g. ``"258173"``).
+
+    Returns:
+        ``DipDocumentText`` with a parliamentary ``human_readable_citation``
+        (e.g. ``"BT-Drs. 20/1"``), the official PDF as ``source_url`` and - for
+        ``-text`` resources - the full ``content``.
+    """
+    audit = _audit()
+    input_hash = hash_input({"resource": resource, "doc_id": doc_id})
+
+    if not doc_id or not doc_id.strip():
+        raise ELIError("invalid_arg", "doc_id must not be empty.")
+
+    with timer() as t:
+        try:
+            async with DipClient(base_url=_dip_base_url(), api_key=_dip_api_key()) as client:
+                raw = await client.get_document(resource, doc_id)
+        except ValueError as exc:
+            raise ELIError("invalid_arg", str(exc)) from exc
+        except httpx.HTTPStatusError as exc:
+            audit.log(
+                tool="de_dip_get_document",
+                input_hash=input_hash,
+                output_count_or_size=0,
+                duration_ms=t.duration_ms if t.duration_ms else 0,
+                status="error",
+                error=f"{type(exc).__name__}: {exc}",
+            )
+            if exc.response.status_code == 404:
+                raise ELIError(
+                    "not_found",
+                    f"DIP entity {doc_id!r} not found for resource {resource!r}. "
+                    f"Use de_dip_search to locate a valid id.",
+                ) from exc
+            raise ELIError(
+                "upstream_error", f"DIP API error: {type(exc).__name__}: {exc}"
+            ) from exc
+        except Exception as exc:
+            audit.log(
+                tool="de_dip_get_document",
+                input_hash=input_hash,
+                output_count_or_size=0,
+                duration_ms=t.duration_ms if t.duration_ms else 0,
+                status="error",
+                error=f"{type(exc).__name__}: {exc}",
+            )
+            raise ELIError(
+                "upstream_error", f"DIP API error: {type(exc).__name__}: {exc}"
+            ) from exc
+
+    enriched = enrich_dip_document(raw)
+    content = raw.get("text")
+    result = DipDocumentText(
+        id=str(enriched["id"]) if enriched.get("id") is not None else None,
+        eli_uri=enriched["eli_uri"],
+        dokumentart=enriched.get("dokumentart"),
+        dokumentnummer=enriched.get("dokumentnummer"),
+        wahlperiode=enriched.get("wahlperiode"),
+        herausgeber=enriched.get("herausgeber"),
+        titel=enriched.get("titel"),
+        datum=enriched.get("datum"),
+        human_readable_citation=enriched.get("human_readable_citation"),
+        source_url=enriched["source_url"],
+        content=content if isinstance(content, str) else None,
+        byte_size=len(content.encode("utf-8")) if isinstance(content, str) else None,
+    )
+
+    audit.log(
+        tool="de_dip_get_document",
         input_hash=input_hash,
         output_count_or_size=result.byte_size or 0,
         duration_ms=t.duration_ms,

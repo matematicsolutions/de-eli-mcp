@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "de-eli-mcp"
-version = "0.2.0"
-description = "MCP server for German federal legislation (NeuRIS) and federal court case law (rechtsprechung-im-internet.de): ELI/ECLI identifiers and verifiable citations."
+version = "0.3.0"
+description = "MCP server for German law: federal legislation (NeuRIS), case law at all court levels (rechtsprechung-im-internet.de, Open Legal Data) and parliamentary documents (Bundestag DIP) - ELI/ECLI identifiers and verifiable citations."
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.11"
