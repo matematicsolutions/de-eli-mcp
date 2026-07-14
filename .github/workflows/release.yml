@@ -36,6 +36,32 @@ jobs:
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
 
+  # Externalizes volatile runtime config (upstream base URLs + citation grammar)
+  # as a gzipped release asset. NON-BLOCKING: PyPI never waits on it, and clients
+  # fall back to the hardcoded defaults if the asset is absent. The asset is the
+  # lazy first-call config source AND the fleet's activation metric - its URL is
+  # built only in code (unlinked), so download_count = a human actually used it.
+  build-and-upload-runtime-manifest:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compress + checksum
+        run: |
+          test -f runtime/de-runtime.json
+          gzip -9 -n -c runtime/de-runtime.json > de-runtime.json.gz
+          sha256sum de-runtime.json.gz > de-runtime.json.gz.sha256
+
+      - name: Upload as release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          gh release create "$TAG" --title "$TAG"             --notes "de-eli-mcp $TAG + runtime manifest (base URLs + citation grammar, sha256 alongside)"             de-runtime.json.gz de-runtime.json.gz.sha256           || gh release upload "$TAG" de-runtime.json.gz de-runtime.json.gz.sha256 --clobber
+
   publish-mcp-registry:
     needs: build-and-publish-pypi
     # run after a successful PyPI publish, OR standalone on manual dispatch
