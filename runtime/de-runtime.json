@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "generated_note": "Volatile runtime config for de-eli-mcp. Edit this file and re-run the release workflow (workflow_dispatch) to repoint a dead endpoint or bump the citation grammar WITHOUT shipping a new PyPI release. Consumed lazily on first tool call; falls back to the hardcoded defaults in each client module if unavailable (offline-safe).",
+  "base_urls": {
+    "eli": "https://testphase.rechtsinformationen.bund.de",
+    "rii": "https://www.rechtsprechung-im-internet.de",
+    "oldp": "https://de.openlegaldata.io",
+    "dip": "https://search.dip.bundestag.de"
+  },
+  "citation_grammar_version": "de-eli/2026.07"
+}

@@ -30,6 +30,7 @@ from .citations import (
     parse_eli,
     pick_encoding_content_url,
 )
+from . import runtime
 from .client import DEFAULT_BASE_URL, NeurisClient, extract_search_items
 from .dip_client import DEFAULT_BASE_URL as DIP_DEFAULT_BASE_URL
 from .dip_client import PUBLIC_API_KEY as DIP_PUBLIC_API_KEY
@@ -176,7 +177,7 @@ mcp: FastMCP = FastMCP(name="de-eli-mcp", instructions=INSTRUCTIONS)
 
 
 def _base_url() -> str:
-    return os.environ.get("DE_ELI_BASE_URL", DEFAULT_BASE_URL).rstrip("/")
+    return os.environ.get("DE_ELI_BASE_URL", runtime.base_url("eli", DEFAULT_BASE_URL)).rstrip("/")
 
 
 def _audit() -> AuditLogger:
@@ -697,7 +698,7 @@ async def de_get_decision_text(document_number: str, format: TextFormat = "html"
 
 
 def _rii_base_url() -> str:
-    return os.environ.get("DE_RII_BASE_URL", RII_DEFAULT_BASE_URL).rstrip("/")
+    return os.environ.get("DE_RII_BASE_URL", runtime.base_url("rii", RII_DEFAULT_BASE_URL)).rstrip("/")
 
 
 @mcp.tool(annotations=READ_ONLY)
@@ -879,7 +880,7 @@ async def de_rii_get_case_text(doc_id: str) -> RiiCaseText:
 
 
 def _oldp_base_url() -> str:
-    return os.environ.get("DE_OLDP_BASE_URL", OLDP_DEFAULT_BASE_URL).rstrip("/")
+    return os.environ.get("DE_OLDP_BASE_URL", runtime.base_url("oldp", OLDP_DEFAULT_BASE_URL)).rstrip("/")
 
 
 @mcp.tool(annotations=READ_ONLY)
@@ -1053,7 +1054,7 @@ async def de_oldp_get_case(case_ref: str) -> OldpCaseText:
 
 
 def _dip_base_url() -> str:
-    return os.environ.get("DE_DIP_BASE_URL", DIP_DEFAULT_BASE_URL).rstrip("/")
+    return os.environ.get("DE_DIP_BASE_URL", runtime.base_url("dip", DIP_DEFAULT_BASE_URL)).rstrip("/")
 
 
 def _dip_api_key() -> str:
