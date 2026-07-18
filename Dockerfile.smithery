@@ -1,0 +1,25 @@
+# Smithery-only image: serves streamable HTTP on /mcp.
+#
+# The root Dockerfile deliberately stays stdio - Glama builds that one and
+# de-eli-mcp is already released there, so switching it to HTTP would break
+# that listing. Keep the two files independent.
+#
+# Installs from local source (not PyPI) so the image runs this commit's code.
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY pyproject.toml README.md LICENSE ./
+COPY src ./src
+
+RUN pip install --no-cache-dir ".[http]"
+
+# TRANSPORT switches server:main() to the HTTP branch; Smithery's proxy
+# requires the server to listen on PORT.
+ENV TRANSPORT=http \
+    PORT=8080
+
+EXPOSE 8080
+
+ENTRYPOINT []
+CMD ["de-eli-mcp"]
