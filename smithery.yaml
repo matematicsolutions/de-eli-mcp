@@ -1,0 +1,16 @@
+runtime: "container"
+
+build:
+  dockerfile: "Dockerfile.smithery"
+  dockerBuildPath: "."
+
+startCommand:
+  type: "http"
+  # This connector takes no configuration: every env var it reads is an
+  # optional endpoint/cache-dir override, and it handles no secrets and no
+  # client data. Hence an empty schema with nothing required.
+  configSchema:
+    type: "object"
+    properties: {}
+    required: []
+  exampleConfig: {}

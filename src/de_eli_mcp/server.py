@@ -1222,8 +1222,38 @@ async def de_dip_get_document(resource: str, doc_id: str) -> DipDocumentText:
     return result
 
 
+def _run_http() -> None:
+    """Serve streamable HTTP on ``/mcp`` for container hosts (Smithery).
+
+    CORS with the two ``mcp-*`` response headers exposed is required, otherwise
+    browser-based MCP clients cannot read the session id and every call fails.
+    """
+    import uvicorn
+    from starlette.middleware import Middleware
+    from starlette.middleware.cors import CORSMiddleware
+
+    app = mcp.http_app(
+        path="/mcp",
+        transport="http",
+        middleware=[
+            Middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+                allow_headers=["*"],
+                expose_headers=["mcp-session-id", "mcp-protocol-version"],
+                max_age=86400,
+            )
+        ],
+    )
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "8080")))
+
+
 def main() -> None:
-    """Run the MCP server over stdio (default for Claude Code)."""
+    """Run the MCP server: stdio by default, HTTP when ``TRANSPORT=http``."""
+    if os.environ.get("TRANSPORT", "").strip().lower() == "http":
+        _run_http()
+        return
     mcp.run()
 
 
