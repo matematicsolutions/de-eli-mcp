@@ -17,6 +17,26 @@ Konfiguracja klienta MCP (stdio):
 { "mcpServers": { "de-eli-mcp": { "command": "uvx", "args": ["de-eli-mcp"] } } }
 ```
 
+### Windows 11 ze Smart App Control
+
+Smart App Control blokuje niepodpisane pliki wykonywalne, a `uvx.exe`, `pip.exe`
+i generowane przy instalacji entry-pointy (`de-eli-mcp.exe`) podpisane nie są.
+`python.exe` z python.org jest podpisany przez Python Software Foundation, więc
+uruchomienie przez moduł omija blokadę:
+
+```bash
+python -m pip install de-eli-mcp
+python -m de_eli_mcp
+```
+
+```json
+{ "mcpServers": { "de-eli-mcp": { "command": "python", "args": ["-m", "de_eli_mcp"] } } }
+```
+
+Uwaga: `pip install` (przez `pip.exe`) też bywa blokowany - stąd `python -m pip`.
+Nie wyłączaj Smart App Control, żeby to obejść: wyłączenie jest **nieodwracalne**
+bez ponownej instalacji systemu.
+
 (Budowanie ze źródeł — niżej.)
 
 An MCP server for German law: **NeuRIS** (`rechtsinformationen.bund.de`) for federal
