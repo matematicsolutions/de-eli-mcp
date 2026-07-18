@@ -35,8 +35,22 @@ from de_eli_mcp.server import (
     de_search,
 )
 
-# A stable expression-level ELI: Bundesdatenschutzgesetz (BDSG).
-BDSG_ELI = "eli/bund/bgbl-1/2017/s2097/2025-01-01/1/deu"
+
+# The point-in-time segment of an expression-level ELI moves every time the act
+# is amended: NeuRIS served the BDSG as .../2017/s2097/2025-01-01/1/deu until an
+# amendment shifted it to .../2017/s2097/2026-07-10/1/deu, which silently broke
+# these two tests. Hard-coding a dated ELI therefore guarantees a red suite on
+# the next amendment, and that red says nothing about our code. Resolve the
+# current expression from search instead, and assert against what we resolved.
+async def resolve_bdsg_eli() -> str:
+    """Return the ELI of the BDSG expression NeuRIS currently serves."""
+    result = await de_search(SearchQuery(search_term="BDSG", size=10))
+    for item in result.items:
+        if (item.abbreviation or "").upper() == "BDSG" and item.eli_uri:
+            return item.eli_uri
+    pytest.skip("NeuRIS returned no BDSG entry - upstream data gap, not our bug")
+
+
 # A stable BAG data-protection decision document number.
 BAG_DECISION = "KARE600069049"
 
@@ -64,8 +78,9 @@ async def test_smoke_search_bdsg() -> None:
 
 @pytest.mark.asyncio
 async def test_smoke_get_bdsg() -> None:
-    act = await de_get_act(BDSG_ELI)
-    assert act.eli_uri == BDSG_ELI, f"eli_uri = {act.eli_uri!r}"
+    bdsg_eli = await resolve_bdsg_eli()
+    act = await de_get_act(bdsg_eli)
+    assert act.eli_uri == bdsg_eli, f"eli_uri = {act.eli_uri!r}"
     assert act.abbreviation == "BDSG", f"abbreviation = {act.abbreviation!r}"
     assert act.human_readable_citation is not None
     assert "BDSG" in act.human_readable_citation
@@ -74,8 +89,9 @@ async def test_smoke_get_bdsg() -> None:
 
 @pytest.mark.asyncio
 async def test_smoke_get_text_html() -> None:
-    text = await de_get_text(BDSG_ELI, format="html")
-    assert text.eli_uri == BDSG_ELI
+    bdsg_eli = await resolve_bdsg_eli()
+    text = await de_get_text(bdsg_eli, format="html")
+    assert text.eli_uri == bdsg_eli
     assert text.format == "html"
     assert text.content is not None and len(text.content) > 0
     assert text.source_url.startswith("https://")
