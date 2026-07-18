@@ -83,3 +83,56 @@ jobs:
 
       - name: Publish server.json to MCP Registry
         run: mcp-publisher publish
+
+  # --- Registry-activation stage (Smithery) ---------------------------------
+  # Ensures the connector is live on Smithery AND carries a human description.
+  # WHY a custom step: the Smithery CLI publish flow calls servers.create() with
+  # NO body, so the manifest description never reaches the registry (servers show
+  # up blank + unsearchable). We publish the thin uvx bundle, then set the
+  # description via a direct authenticated PATCH (the only path that sticks).
+  # Idempotent + self-gating: no-ops when SMITHERY_API_KEY (org secret) is unset,
+  # tolerates "already exists" on re-runs. Activation becomes a side-effect of CI.
+  publish-smithery:
+    needs: build-and-publish-pypi
+    if: always() && (github.event_name == 'workflow_dispatch' || needs.build-and-publish-pypi.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Publish bundle + set description on Smithery
+        env:
+          SMITHERY_API_KEY: ${{ secrets.SMITHERY_API_KEY }}
+          PKG: de-eli-mcp
+          DESC: "MCP connector for Germany national law (ELI - European Legislation Identifier). Search and cite German legislation from official government sources. Part of MateMatic's open, local-first EU legal-source connector family. GDPR-safe, MIT."
+        run: |
+          if [ -z "$SMITHERY_API_KEY" ]; then
+            echo "SMITHERY_API_KEY not set - skipping Smithery activation (no-op)."
+            exit 0
+          fi
+          QN="matematicsolutions/$PKG"
+          cat > manifest.json <<JSON
+          {
+            "manifest_version": "0.2",
+            "name": "$PKG",
+            "version": "1.0.0",
+            "description": "$DESC",
+            "author": { "name": "MateMatic", "url": "https://matematicsolutions.com" },
+            "repository": { "type": "git", "url": "https://github.com/matematicsolutions/$PKG" },
+            "server": { "type": "binary", "entry_point": "uvx", "mcp_config": { "command": "uvx", "args": ["$PKG"], "env": {} } },
+            "tools": [],
+            "license": "MIT"
+          }
+          JSON
+          npx -y @anthropic-ai/mcpb pack . >/dev/null
+          npx -y @smithery/cli@latest mcp publish "./$PKG.mcpb" -n "$QN" \
+            || echo "publish returned non-zero (server likely already exists) - continuing to description PATCH"
+          BODY=$(jq -nc --arg d "$DESC" '{description:$d}')
+          curl -sf -X PATCH \
+            -H "Authorization: Bearer $SMITHERY_API_KEY" \
+            -H "Content-Type: application/json" \
+            -H "User-Agent: Mozilla/5.0 (registry-activation; +https://matematicsolutions.com)" \
+            -d "$BODY" \
+            "https://api.smithery.ai/servers/$QN"
+          echo "Smithery activation done for $QN"
