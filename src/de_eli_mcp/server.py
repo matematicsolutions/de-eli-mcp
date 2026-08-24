@@ -116,6 +116,7 @@ Routing rule for case law: federal supreme/constitutional courts -> RII tools (o
 
 ## Hard constraints
 
+- **Do not answer past the edge of this corpus** - when a search comes back empty, or the question touches material this connector does not carry, call `de_coverage` and relay what it says is missing. Absence here is not absence in the law.
 - **ELI is the key to citability** - the German ELI is a path like `eli/{jurisdiction}/{agent}/{year}/{naturalIdentifier}/{pointInTime}/{version}/{language}`. It is returned ready in `legislationIdentifier`; do not invent it.
 - **Every response has `human_readable_citation` + `source_url`** - cite both to the user (e.g. "BDSG (BGBl I, 2017 2097)").
 - **No modification of official text** - the act is returned verbatim from NeuRIS.
