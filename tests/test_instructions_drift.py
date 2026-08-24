@@ -93,3 +93,19 @@ def test_eli_error_rejects_unknown_code():
     """ELIError with an unknown code raises in the constructor - guards against drift."""
     with pytest.raises(ValueError, match="Unknown ELIError code"):
         ELIError("nonexistent_code", "x")
+
+def test_all_registered_tools_mentioned_in_instructions():
+    """Every registered tool must be reachable from INSTRUCTIONS.
+
+    The weak direction (instructions naming tools that do not exist) catches stale docs.
+    This is the other direction: a tool the instructions never mention is registered but
+    not routed, so the model has no reason to reach for it. That is how a capability
+    ships without the behaviour change it was meant to deliver.
+    """
+    registered = _registered_tool_names()
+    # a tool may be named bare (`tool`) or with a call example (`tool(arg=...)`) - both route the model
+    missing = {
+        t for t in registered
+        if f"`{t}`" not in INSTRUCTIONS and f"`{t}(" not in INSTRUCTIONS
+    }
+    assert not missing, f"Registered tools absent from INSTRUCTIONS: {missing}"
