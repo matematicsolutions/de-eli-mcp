@@ -110,6 +110,7 @@ German source.
 | `de_oldp_get_case` | Full decision text (HTML) by OLDP id or slug, with ECLI when the source carries one. |
 | `de_dip_search` | Search the Bundestag **DIP** - Drucksachen (287 327), Plenarprotokolle (5 789), Vorgaenge (334 524); filters `titel`, `dokumentnummer`, `zuordnung` (BT/BR), `wahlperiode`, dates; cursor pagination. |
 | `de_dip_get_document` | One DIP entity by id; the `-text` resource variants return the full document text. Citations like `BT-Drs. 20/1` with the official PDF as `source_url`. |
+| `de_coverage` | Declare what this connector covers, when each family was captured, and - explicitly - what it does NOT cover. Every gap carries a fallback. |
 
 Every response carries the contract: `eli_uri` (ELI e.g. `eli/bund/bgbl-1/2017/s2097/2025-01-01/1/deu`,
 or ECLI for RII case law e.g. `ECLI:DE:BVerfG:2024:rk20241120.1bvr226823`),
