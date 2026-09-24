@@ -1,0 +1,3203 @@
+{
+  "package_version": "0.5.3",
+  "tools": {
+    "de_case_search": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Search German federal court decisions in NeuRIS.\n\nMaps to ``GET /v1/case-law``. Each item gets ``ecli``,\n``human_readable_citation``, ``source_url``.",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "query": {
+              "additionalProperties": true,
+              "description": "``CaseSearchQuery`` - search_term, date_from/to, size, page_index, sort.",
+              "properties": {
+                "date_from": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                },
+                "date_to": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                },
+                "page_index": {
+                  "default": 0,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "searchTerm": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                },
+                "size": {
+                  "default": 20,
+                  "maximum": 300,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "sort": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                }
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_case_search",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Result of ``de_case_search``.",
+          "properties": {
+            "dataset_note": {
+              "default": "NeuRIS is a beta service and its dataset is not yet complete. For exhaustive research cross-check gesetze-im-internet.de / rechtsprechung-im-internet.de.",
+              "type": "string"
+            },
+            "items": {
+              "items": {
+                "additionalProperties": true,
+                "description": "Lightweight court-decision record - from a case-law search item.",
+                "properties": {
+                  "@id": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "courtName": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "courtType": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "decisionDate": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "documentNumber": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "documentType": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "ecli": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "fileNumbers": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "headline": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "human_readable_citation": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "source_url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  }
+                },
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "query_echo": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "description": "Arguments for the ``de_case_search`` tool.",
+                  "properties": {
+                    "date_from": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null
+                    },
+                    "date_to": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null
+                    },
+                    "page_index": {
+                      "default": 0,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "searchTerm": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null
+                    },
+                    "size": {
+                      "default": 20,
+                      "maximum": 300,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "sort": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null
+                    }
+                  },
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "total_items": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "total_items"
+          ],
+          "type": "object"
+        }
+      },
+      "sha256": "60647858fcaabebd1bcd8c8294a94188aff526db39b6319718395bb71356c8ca"
+    },
+    "de_coverage": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Declare what this connector covers, how it is sourced, and what it does NOT cover.\n\nCall this before telling a user that the law \"does not contain\" something, and whenever\na search comes back empty: the absence may be a gap in this connector rather than in the\nlaw. Every gap carries a fallback saying where to look instead.\n\nReturns:\n    ``Coverage`` with families, an as-of note, and a non-empty list of known gaps.",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {},
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_coverage",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "What this connector covers, how it is sourced, and what it does not cover.",
+          "properties": {
+            "as_of_note": {
+              "description": "States what the dates mean, and what they do not promise.",
+              "type": "string"
+            },
+            "families": {
+              "items": {
+                "additionalProperties": true,
+                "description": "One data family this connector exposes.",
+                "properties": {
+                  "captured_at": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Date this family was last captured (ISO). None when queried live."
+                  },
+                  "live": {
+                    "default": true,
+                    "description": "True when queried live instead of from a snapshot.",
+                    "type": "boolean"
+                  },
+                  "name": {
+                    "description": "Data family, e.g. 'Federal legislation'.",
+                    "type": "string"
+                  },
+                  "source": {
+                    "description": "Official source the data comes from.",
+                    "type": "string"
+                  },
+                  "tool": {
+                    "description": "Tool or tools that reach this family.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "tool",
+                  "source"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "known_gaps": {
+              "description": "Never empty. An empty list would mean 'not checked', not 'no gaps'.",
+              "items": {
+                "additionalProperties": true,
+                "description": "A known, named hole in this connector's coverage - plus the way around it.",
+                "properties": {
+                  "fallback": {
+                    "description": "Where to go instead.",
+                    "type": "string"
+                  },
+                  "family": {
+                    "description": "Which family the gap belongs to.",
+                    "type": "string"
+                  },
+                  "id": {
+                    "description": "Stable gap identifier.",
+                    "type": "string"
+                  },
+                  "missing": {
+                    "description": "What is NOT available through this connector.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "family",
+                  "missing",
+                  "fallback"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "status": {
+              "default": "ok",
+              "enum": [
+                "ok",
+                "degraded",
+                "failed"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "as_of_note"
+          ],
+          "type": "object"
+        }
+      },
+      "sha256": "c53ea4af0e89d93390abb6402183893ca3a58a619da7da598fce52fd0758ddb8"
+    },
+    "de_dip_get_document": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Fetch one entity from the Bundestag DIP by id.",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "doc_id": {
+              "description": "the DIP entity id from a ``de_dip_search`` result (e.g. ``\"258173\"``).",
+              "type": "string"
+            },
+            "resource": {
+              "description": "``\"drucksache\"``, ``\"drucksache-text\"``, ``\"plenarprotokoll\"``,\n``\"plenarprotokoll-text\"`` or ``\"vorgang\"``. Use a ``-text`` variant to\nget the full document text.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "resource",
+            "doc_id"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_dip_get_document",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Result of ``de_dip_get_document``.",
+          "properties": {
+            "byte_size": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "content": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Full document text (plain)."
+            },
+            "datum": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "dokumentart": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "dokumentnummer": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "eli_uri": {
+              "type": "string"
+            },
+            "herausgeber": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "human_readable_citation": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "note": {
+              "default": "Source: DIP (dip.bundestag.de), the German parliament's official documentation system, via its documented public API. Covers Bundestag and Bundesrat printed papers (Drucksachen), plenary transcripts and legislative procedures. DIP records legislative history - it does not carry consolidated statute text (use de_search for that).",
+              "type": "string"
+            },
+            "source_url": {
+              "type": "string"
+            },
+            "titel": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "wahlperiode": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "required": [
+            "eli_uri",
+            "source_url"
+          ],
+          "type": "object"
+        }
+      },
+      "sha256": "b178badb55c344fd5f97dc4b76f9b275a6f09ed032b70c5e8a14342ec2b8714a"
+    },
+    "de_dip_search": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Search the Bundestag DIP - Germany's official parliamentary documentation.\n\nCovers Drucksachen (bills, motions, reports, government answers), plenary\ntranscripts and legislative procedures of Bundestag and Bundesrat. Legislative\nhistory (Gesetzesbegruendungen) is a standard aid of German statutory\ninterpretation. Uses the documented public API key by default (rotates ~yearly;\noverride with ``DE_DIP_API_KEY``).",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "query": {
+              "additionalProperties": true,
+              "description": "``DipSearchQuery`` - resource (drucksache / plenarprotokoll / vorgang /\n'-text' variants), titel, dokumentnummer, zuordnung ('BT'/'BR'),\nwahlperiode, vorgangstyp, date_start/date_end, cursor.",
+              "properties": {
+                "cursor": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Opaque pagination cursor from the previous result; end is reached when the cursor stops changing."
+                },
+                "date_end": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "ISO date, inclusive."
+                },
+                "date_start": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "ISO date, inclusive."
+                },
+                "dokumentnummer": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Document number, e.g. '20/1' (exact)."
+                },
+                "resource": {
+                  "default": "drucksache",
+                  "description": "DIP resource type. Use 'drucksache' / 'plenarprotokoll' for metadata, the '-text' variants to include full text in results, 'vorgang' for legislative procedures.",
+                  "enum": [
+                    "drucksache",
+                    "drucksache-text",
+                    "plenarprotokoll",
+                    "plenarprotokoll-text",
+                    "vorgang"
+                  ],
+                  "type": "string"
+                },
+                "titel": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Match against the title."
+                },
+                "vorgangstyp": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Procedure type (vorgang only), e.g. 'Gesetzgebung'."
+                },
+                "wahlperiode": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Electoral term, e.g. 20."
+                },
+                "zuordnung": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "'BT' (Bundestag) or 'BR' (Bundesrat)."
+                }
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_dip_search",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Result of ``de_dip_search``.",
+          "properties": {
+            "cursor": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "items": {
+              "items": {
+                "additionalProperties": true,
+                "description": "Lightweight DIP entity record.",
+                "properties": {
+                  "datum": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "dokumentart": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "dokumentnummer": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "drucksachetyp": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "eli_uri": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "herausgeber": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "human_readable_citation": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "id": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "source_url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "text": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "titel": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "vorgangstyp": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "wahlperiode": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  }
+                },
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "note": {
+              "default": "Source: DIP (dip.bundestag.de), the German parliament's official documentation system, via its documented public API. Covers Bundestag and Bundesrat printed papers (Drucksachen), plenary transcripts and legislative procedures. DIP records legislative history - it does not carry consolidated statute text (use de_search for that).",
+              "type": "string"
+            },
+            "query_echo": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "description": "Arguments for the ``de_dip_search`` tool.",
+                  "properties": {
+                    "cursor": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "Opaque pagination cursor from the previous result; end is reached when the cursor stops changing."
+                    },
+                    "date_end": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "ISO date, inclusive."
+                    },
+                    "date_start": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "ISO date, inclusive."
+                    },
+                    "dokumentnummer": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "Document number, e.g. '20/1' (exact)."
+                    },
+                    "resource": {
+                      "default": "drucksache",
+                      "description": "DIP resource type. Use 'drucksache' / 'plenarprotokoll' for metadata, the '-text' variants to include full text in results, 'vorgang' for legislative procedures.",
+                      "enum": [
+                        "drucksache",
+                        "drucksache-text",
+                        "plenarprotokoll",
+                        "plenarprotokoll-text",
+                        "vorgang"
+                      ],
+                      "type": "string"
+                    },
+                    "titel": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "Match against the title."
+                    },
+                    "vorgangstyp": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "Procedure type (vorgang only), e.g. 'Gesetzgebung'."
+                    },
+                    "wahlperiode": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "Electoral term, e.g. 20."
+                    },
+                    "zuordnung": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "'BT' (Bundestag) or 'BR' (Bundesrat)."
+                    }
+                  },
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "total_items": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "total_items"
+          ],
+          "type": "object"
+        }
+      },
+      "sha256": "5330437c483183dc55e0c15f5c4143f50045b6edbd53759935d5a4ec94e8bd03"
+    },
+    "de_get_act": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Fetch act metadata from NeuRIS by ELI.",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "eli": {
+              "description": "a German ELI, e.g. ``\"eli/bund/bgbl-1/2017/s2097/2025-01-01/1/deu\"``\n(an API path or work-level ELI is also accepted).",
+              "type": "string"
+            }
+          },
+          "required": [
+            "eli"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_get_act",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Full legislation record - GET /v1/legislation/{eli}.\n\nKeeps the structural tree (``hasPart``) and manifestations (``encoding``) as\nextra fields; the typed fields below are the ones the contract depends on.",
+          "properties": {
+            "@id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "abbreviation": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "alternateName": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "dataset_note": {
+              "default": "NeuRIS is a beta service and its dataset is not yet complete. For exhaustive research cross-check gesetze-im-internet.de / rechtsprechung-im-internet.de.",
+              "type": "string"
+            },
+            "eli_uri": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "human_readable_citation": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "legislationIdentifier": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "legislationLegalForce": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "name": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "source_url": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "type": "object"
+        }
+      },
+      "sha256": "cc5bc2a42c329311e305a1b2ad0b0cd03b5291691c7785b5435f609450bdc9b1"
+    },
+    "de_get_decision": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Fetch court-decision metadata from NeuRIS by document number.",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "document_number": {
+              "description": "NeuRIS document number, e.g. ``\"KARE600069049\"``.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "document_number"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_get_decision",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Full court-decision metadata - GET /v1/case-law/{documentNumber}.",
+          "properties": {
+            "@id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "courtName": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "courtType": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "dataset_note": {
+              "default": "NeuRIS is a beta service and its dataset is not yet complete. For exhaustive research cross-check gesetze-im-internet.de / rechtsprechung-im-internet.de.",
+              "type": "string"
+            },
+            "decisionDate": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "documentNumber": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "documentType": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "ecli": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "fileNumbers": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "headline": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "human_readable_citation": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "source_url": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "type": "object"
+        }
+      },
+      "sha256": "ed73530b209ccd2129498eb5c36899ccff37d4e505a870c005e846cf6517c5b7"
+    },
+    "de_get_decision_text": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Fetch the full text of a court decision.\n\nResolves the manifestation from the decision's ``encoding`` array and downloads it.",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "document_number": {
+              "description": "NeuRIS document number, e.g. ``\"KARE600069049\"``.",
+              "type": "string"
+            },
+            "format": {
+              "default": "html",
+              "description": "``\"html\"`` or ``\"xml\"``.",
+              "enum": [
+                "html",
+                "xml"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "document_number"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_get_decision_text",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Result of ``de_get_decision_text``.",
+          "properties": {
+            "byte_size": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "content": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "content_type": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "dataset_note": {
+              "default": "NeuRIS is a beta service and its dataset is not yet complete. For exhaustive research cross-check gesetze-im-internet.de / rechtsprechung-im-internet.de.",
+              "type": "string"
+            },
+            "ecli": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "format": {
+              "enum": [
+                "html",
+                "xml"
+              ],
+              "type": "string"
+            },
+            "human_readable_citation": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "source_url": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "source_url",
+            "format"
+          ],
+          "type": "object"
+        }
+      },
+      "sha256": "1830815e2c53f144ef7a02562ec8d58ecd249ddc47838d40bec38df68b3047ea"
+    },
+    "de_get_text": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Fetch the full text of an act.\n\nResolves the manifestation from the act's ``encoding`` array (the contentUrl\nfor the requested format) and downloads it. Format is selected by file\nextension upstream, not by Accept header.",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "eli": {
+              "description": "ELI of the act (expression level recommended).",
+              "type": "string"
+            },
+            "format": {
+              "default": "html",
+              "description": "``\"html\"`` or ``\"xml\"`` (LegalDocML.de).",
+              "enum": [
+                "html",
+                "xml"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "eli"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_get_text",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Result of ``de_get_text``.",
+          "properties": {
+            "byte_size": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "content": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "content_type": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "dataset_note": {
+              "default": "NeuRIS is a beta service and its dataset is not yet complete. For exhaustive research cross-check gesetze-im-internet.de / rechtsprechung-im-internet.de.",
+              "type": "string"
+            },
+            "eli_uri": {
+              "type": "string"
+            },
+            "format": {
+              "enum": [
+                "html",
+                "xml"
+              ],
+              "type": "string"
+            },
+            "human_readable_citation": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "source_url": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "eli_uri",
+            "source_url",
+            "format"
+          ],
+          "type": "object"
+        }
+      },
+      "sha256": "f2210fe07546200e267a48fca7881ea5ea82f2c28a352e6513a9732f169b3332"
+    },
+    "de_list_publishers": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "List the German publication organs (ELI ``agent`` codes).\n\nNeuRIS has no publisher-dictionary endpoint, so this is derived from the ELI\n``agent`` slot (BGBl I/II, Bundesanzeiger). Non-exhaustive.\n\nReturns:\n    List of ``Publisher`` (code, name, note).",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {},
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_list_publishers",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "items": {
+                "additionalProperties": true,
+                "description": "A NeuRIS publication organ (derived from ELI ``agent`` codes).",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "note": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  }
+                },
+                "required": [
+                  "code"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object",
+          "x-fastmcp-wrap-result": true
+        }
+      },
+      "sha256": "311c5c54eef45ff9ee72997b634916d13aa10c7a960fcd9e5c60ab7dd7d19c78"
+    },
+    "de_oldp_case_search": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Search German case law across ALL court levels via Open Legal Data.\n\nOpen Legal Data (de.openlegaldata.io) is a community open-data aggregator\n(~424k decisions from ~1 100 courts at check). It is the only source here that\ncovers STATE courts and the only one with full-text search. Database ODbL v1.0;\nthe decisions themselves are gemeinfrei (§ 5 UrhG). Not an official service -\nprefer the RII tools for the six federal supreme/constitutional courts.",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "query": {
+              "additionalProperties": true,
+              "description": "``OldpCaseQuery`` - text (full-text; ignores the other filters),\ncourt_slug, file_number (exact), date_after/date_before, page.",
+              "properties": {
+                "court_slug": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Court slug, e.g. 'bverwg', 'ovgnrw', 'lg-nurnberg-furth'."
+                },
+                "date_after": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "ISO date, inclusive lower bound."
+                },
+                "date_before": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "ISO date, inclusive upper bound."
+                },
+                "file_number": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "EXACT docket number match, e.g. '8 O 4860/25'."
+                },
+                "page": {
+                  "default": 1,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "text": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Full-text search over decision content (Elasticsearch). When set, the metadata filters below are IGNORED (different upstream endpoint)."
+                }
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_oldp_case_search",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Result of ``de_oldp_case_search``.",
+          "properties": {
+            "items": {
+              "items": {
+                "additionalProperties": true,
+                "description": "Lightweight OLDP case record (normalised across both search shapes).",
+                "properties": {
+                  "court_jurisdiction": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "court_level_of_appeal": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "court_name": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "court_slug": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "date": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "decision_type": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "ecli": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "eli_uri": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "file_number": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "human_readable_citation": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "id": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "slug": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "snippets": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "source_url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  }
+                },
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "note": {
+              "default": "Source: Open Legal Data (de.openlegaldata.io), a community open-data aggregator of German case law across all court levels (federal AND state courts) - database under ODbL v1.0, decisions themselves gemeinfrei per § 5 UrhG. It is NOT an official government service and does not claim completeness; for the six federal supreme/constitutional courts prefer de_rii_case_search (official, complete). OLDP's unique value is the state-court layer (Oberlandesgerichte, Landgerichte, Amtsgerichte, state administrative/social/labor/finance courts).",
+              "type": "string"
+            },
+            "query_echo": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "description": "Arguments for the ``de_oldp_case_search`` tool.",
+                  "properties": {
+                    "court_slug": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "Court slug, e.g. 'bverwg', 'ovgnrw', 'lg-nurnberg-furth'."
+                    },
+                    "date_after": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "ISO date, inclusive lower bound."
+                    },
+                    "date_before": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "ISO date, inclusive upper bound."
+                    },
+                    "file_number": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "EXACT docket number match, e.g. '8 O 4860/25'."
+                    },
+                    "page": {
+                      "default": 1,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "text": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "Full-text search over decision content (Elasticsearch). When set, the metadata filters below are IGNORED (different upstream endpoint)."
+                    }
+                  },
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "total_items": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "total_items"
+          ],
+          "type": "object"
+        }
+      },
+      "sha256": "55b08558298096ae2936a62b4b9685f1e3d5f2804ccfa94d259e5cc0ddbf79ac"
+    },
+    "de_oldp_get_case": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Fetch the full text of one decision from Open Legal Data.",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "case_ref": {
+              "description": "a numeric OLDP case id (e.g. ``\"521203\"``) or a slug\n(e.g. ``\"lg-nurnberg-furth-2026-05-21-8-o-486025\"``) from a\n``de_oldp_case_search`` result.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "case_ref"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_oldp_get_case",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Result of ``de_oldp_get_case``.",
+          "properties": {
+            "byte_size": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "content": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Full decision text (HTML)."
+            },
+            "court_name": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "date": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "decision_type": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "ecli": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "eli_uri": {
+              "type": "string"
+            },
+            "file_number": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "human_readable_citation": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "id": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "note": {
+              "default": "Source: Open Legal Data (de.openlegaldata.io), a community open-data aggregator of German case law across all court levels (federal AND state courts) - database under ODbL v1.0, decisions themselves gemeinfrei per § 5 UrhG. It is NOT an official government service and does not claim completeness; for the six federal supreme/constitutional courts prefer de_rii_case_search (official, complete). OLDP's unique value is the state-court layer (Oberlandesgerichte, Landgerichte, Amtsgerichte, state administrative/social/labor/finance courts).",
+              "type": "string"
+            },
+            "slug": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "source_url": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "eli_uri",
+            "source_url"
+          ],
+          "type": "object"
+        }
+      },
+      "sha256": "81229a9b18f2e670da6776a02cd0fba7d9c96ebaa60a559301c4d46a02762d39"
+    },
+    "de_recent_changes": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Acts published since ``since_iso`` (ISO 8601), newest-first.\n\nMaps to ``GET /v1/legislation?sort=date&dateFrom=...``. Useful for a\nlaw-monitoring feature.",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "limit": {
+              "default": 50,
+              "description": "max items to return (1..300).",
+              "type": "integer"
+            },
+            "since_iso": {
+              "description": "a date in ISO 8601 (e.g. ``\"2026-01-01\"``).",
+              "type": "string"
+            }
+          },
+          "required": [
+            "since_iso"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_recent_changes",
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "items": {
+                "additionalProperties": true,
+                "description": "Lightweight legislation record - from a listing / search item.",
+                "properties": {
+                  "@id": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "abbreviation": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "alternateName": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "eli_uri": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "human_readable_citation": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "legislationIdentifier": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "legislationLegalForce": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "name": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "source_url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  }
+                },
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "type": "object",
+          "x-fastmcp-wrap-result": true
+        }
+      },
+      "sha256": "8dbc2bc08eec0befd46d3066d37bb4be7daba2146a0b868abba241dc32e1f05e"
+    },
+    "de_rii_case_search": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Search German federal court decisions via rechtsprechung-im-internet.de (RII).\n\nRII is the official BMJ/juris case-law aggregator and, per the independent Legal\nData Hunter audit, is *complete* for BVerfG, BGH, BAG, BFH, BVerwG, BSG (+ BPatG) -\nunlike NeuRIS's `/v1/case-law`, which is a small beta slice. Filters over the master\ntable of contents (court, Aktenzeichen substring, date range); there is no full-text\nsearch (the TOC carries no decision text).",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "query": {
+              "additionalProperties": true,
+              "description": "``RiiCaseQuery`` - court, aktenzeichen_contains, date_from/to, limit, offset.",
+              "properties": {
+                "aktenzeichen_contains": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Substring match against the Aktenzeichen (docket number)."
+                },
+                "court": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "BVerfG",
+                        "BGH",
+                        "BAG",
+                        "BFH",
+                        "BVerwG",
+                        "BSG",
+                        "BPatG"
+                      ],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Filter by federal court, e.g. 'BVerfG'."
+                },
+                "date_from": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "ISO or YYYYMMDD, inclusive."
+                },
+                "date_to": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "ISO or YYYYMMDD, inclusive."
+                },
+                "limit": {
+                  "default": 20,
+                  "maximum": 200,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "offset": {
+                  "default": 0,
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_rii_case_search",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Result of ``de_rii_case_search``.",
+          "properties": {
+            "items": {
+              "items": {
+                "additionalProperties": true,
+                "description": "Lightweight RII decision record - one TOC row.",
+                "properties": {
+                  "aktenzeichen": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "court_raw": {
+                    "type": "string"
+                  },
+                  "court_type": {
+                    "type": "string"
+                  },
+                  "decision_date": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "doc_id": {
+                    "type": "string"
+                  },
+                  "human_readable_citation": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "modified": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "source_url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "zip_url": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "court_raw",
+                  "court_type",
+                  "doc_id",
+                  "zip_url"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "note": {
+              "default": "Source: rechtsprechung-im-internet.de (RII), the official BMJ/juris case-law aggregator. Coverage per the Legal Data Hunter audit (worldwidelaw/legal-sources): BVerfG, BGH, BAG, BFH, BVerwG, BSG (+ BPatG) are complete for decisions RII has published; RII itself does not claim to hold every decision ever issued by these courts (courts publish selectively), so absence of a hit is not proof a decision does not exist.",
+              "type": "string"
+            },
+            "query_echo": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "description": "Arguments for the ``de_rii_case_search`` tool.",
+                  "properties": {
+                    "aktenzeichen_contains": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "Substring match against the Aktenzeichen (docket number)."
+                    },
+                    "court": {
+                      "anyOf": [
+                        {
+                          "enum": [
+                            "BVerfG",
+                            "BGH",
+                            "BAG",
+                            "BFH",
+                            "BVerwG",
+                            "BSG",
+                            "BPatG"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "Filter by federal court, e.g. 'BVerfG'."
+                    },
+                    "date_from": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "ISO or YYYYMMDD, inclusive."
+                    },
+                    "date_to": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null,
+                      "description": "ISO or YYYYMMDD, inclusive."
+                    },
+                    "limit": {
+                      "default": 20,
+                      "maximum": 200,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "offset": {
+                      "default": 0,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "total_items": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "total_items"
+          ],
+          "type": "object"
+        }
+      },
+      "sha256": "23f478174fc6dace4ffedc4442e211244cda26299aad71ba470205ed7621a3d7"
+    },
+    "de_rii_get_case_text": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Fetch the full text of a decision from rechtsprechung-im-internet.de (RII).",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "doc_id": {
+              "description": "the RII document id from a ``de_rii_case_search`` result's ``doc_id``\n(e.g. ``\"JURE100055033\"``), or a full ZIP URL.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "doc_id"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_rii_get_case_text",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Result of ``de_rii_get_case_text``.",
+          "properties": {
+            "aktenzeichen": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "byte_size": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "content": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Full text (Tatbestand + Gruende)."
+            },
+            "court": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "decision_date": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "doc_id": {
+              "type": "string"
+            },
+            "doktyp": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "ecli": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "eli_uri": {
+              "type": "string"
+            },
+            "human_readable_citation": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "leitsatz": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "norm": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "note": {
+              "default": "Source: rechtsprechung-im-internet.de (RII), the official BMJ/juris case-law aggregator. Coverage per the Legal Data Hunter audit (worldwidelaw/legal-sources): BVerfG, BGH, BAG, BFH, BVerwG, BSG (+ BPatG) are complete for decisions RII has published; RII itself does not claim to hold every decision ever issued by these courts (courts publish selectively), so absence of a hit is not proof a decision does not exist.",
+              "type": "string"
+            },
+            "source_url": {
+              "type": "string"
+            },
+            "spruchkoerper": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "tenor": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "titelzeile": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "required": [
+            "doc_id",
+            "eli_uri",
+            "source_url"
+          ],
+          "type": "object"
+        }
+      },
+      "sha256": "d2b4601052abeac4c2dec7d1e34731cf66f4a7d9bee88dc90410d46120d94468"
+    },
+    "de_search": {
+      "descriptor": {
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true,
+          "readOnlyHint": true
+        },
+        "description": "Search German federal legislation in NeuRIS.\n\nMaps to ``GET /v1/legislation``. Each item gets ``eli_uri``,\n``human_readable_citation``, ``source_url`` (per Art. 4 CONSTITUTION).",
+        "inputSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "query": {
+              "additionalProperties": true,
+              "description": "``SearchQuery`` - search_term, eli, date_from/to,\ntemporal_coverage_from/to, size (1..300), page_index, sort.",
+              "properties": {
+                "date_from": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                },
+                "date_to": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                },
+                "eli": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                },
+                "page_index": {
+                  "default": 0,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "searchTerm": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                },
+                "size": {
+                  "default": 20,
+                  "maximum": 300,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "sort": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "date",
+                        "temporalCoverageFrom",
+                        "legislationIdentifier"
+                      ],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                },
+                "sort_dir": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "asc",
+                        "desc"
+                      ],
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                },
+                "temporal_coverage_from": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                },
+                "temporal_coverage_to": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                }
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "type": "object"
+        },
+        "meta": {
+          "fastmcp": {
+            "tags": []
+          }
+        },
+        "name": "de_search",
+        "outputSchema": {
+          "additionalProperties": true,
+          "description": "Result of ``de_search``.",
+          "properties": {
+            "dataset_note": {
+              "default": "NeuRIS is a beta service and its dataset is not yet complete. For exhaustive research cross-check gesetze-im-internet.de / rechtsprechung-im-internet.de.",
+              "type": "string"
+            },
+            "items": {
+              "items": {
+                "additionalProperties": true,
+                "description": "Lightweight legislation record - from a listing / search item.",
+                "properties": {
+                  "@id": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "abbreviation": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "alternateName": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "eli_uri": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "human_readable_citation": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "legislationIdentifier": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "legislationLegalForce": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "name": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "source_url": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  }
+                },
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "query_echo": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "description": "Arguments for the ``de_search`` tool.",
+                  "properties": {
+                    "date_from": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null
+                    },
+                    "date_to": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null
+                    },
+                    "eli": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null
+                    },
+                    "page_index": {
+                      "default": 0,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "searchTerm": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null
+                    },
+                    "size": {
+                      "default": 20,
+                      "maximum": 300,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "sort": {
+                      "anyOf": [
+                        {
+                          "enum": [
+                            "date",
+                            "temporalCoverageFrom",
+                            "legislationIdentifier"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null
+                    },
+                    "sort_dir": {
+                      "anyOf": [
+                        {
+                          "enum": [
+                            "asc",
+                            "desc"
+                          ],
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null
+                    },
+                    "temporal_coverage_from": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null
+                    },
+                    "temporal_coverage_to": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null
+                    }
+                  },
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "total_items": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "total_items"
+          ],
+          "type": "object"
+        }
+      },
+      "sha256": "026eb7067fb31f8093358edf43702202fd86ccc9ff59c673fcf8a494d559a6df"
+    }
+  },
+  "toolset_sha256": "9ab08e4651a0719d2417884eb1ae449f0eb4482ca1243eaa25a749dbcc7adc51"
+}
