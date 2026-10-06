@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-plugin-marketplace.json",
+  "name": "de-eli-mcp",
+  "description": "One plugin: German federal law and case law with verifiable citations.",
+  "owner": {
+    "name": "Wieslaw Mazur / MateMatic Solutions",
+    "url": "https://matematicsolutions.com"
+  },
+  "plugins": [
+    {
+      "name": "de-eli-mcp",
+      "description": "German federal legislation (NeuRIS, ELI), case law at all court levels (ECLI) and Bundestag documents (DIP) with official source identifiers.",
+      "version": "0.5.3",
+      "author": { "name": "Wieslaw Mazur / MateMatic Solutions" },
+      "license": "Apache-2.0",
+      "source": "./plugin"
+    }
+  ]
+}

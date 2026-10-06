@@ -1,0 +1,11 @@
+# Runtime of the Claude plugin: pins de-eli-mcp and every transitive dependency
+# (with hashes) in uv.lock, so the plugin runs exactly what was reviewed.
+# Started by plugin.json as: uv run --frozen --project ${CLAUDE_PLUGIN_ROOT}/server de-eli-mcp
+[project]
+name = "de-eli-mcp-plugin-runtime"
+version = "0.5.3"
+requires-python = ">=3.11,<3.14"
+dependencies = ["de-eli-mcp==0.5.3"]
+
+[tool.uv]
+package = false

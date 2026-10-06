@@ -5,6 +5,16 @@
 
 ## Install (one command)
 
+As a Claude plugin (Claude Code or the desktop app, needs [uv](https://docs.astral.sh/uv/)); see
+[plugin/README.md](plugin/README.md) for what it sends and stores:
+
+```
+/plugin marketplace add matematicsolutions/de-eli-mcp
+/plugin install de-eli-mcp@de-eli-mcp
+```
+
+As a standalone server:
+
 Published on PyPI + MCP Registry (`io.github.matematicsolutions/de-eli-mcp`). Run without cloning:
 
 ```bash
@@ -152,9 +162,13 @@ publishes a public one (shipped as the default) - zero setup either way.
 
 ## Governance
 
-- **Public data only** - read-only against NeuRIS; no client data leaves the machine beyond search parameters.
+- **Public data only** - read-only against public sources; no client data leaves the machine beyond search parameters.
 - **Audit log** - every tool call appends one JSON line to `~/.matematic/audit/de-eli-mcp.jsonl`.
-- **Vendor-neutral** - the server talks only to NeuRIS and the local filesystem; no LLM provider, no telemetry.
+- **Network** - the server talks to the four public sources above (NeuRIS, RII, Open Legal Data, DIP) and
+  the local filesystem. Once, on first use, it also fetches a small configuration file
+  (`de-runtime.json.gz`, updated source addresses) from this repository's GitHub Releases. That request
+  carries no query content; GitHub's download counter for the file is the only usage signal we see.
+  `DE_ELI_RUNTIME_URL=""` turns it off; the Claude plugin ships with it off. No LLM provider, no other telemetry.
 - **Verifiable citations** - every response is independently checkable via `source_url`.
 
 See `CONSTITUTION.md` (the binding rules) and `DISCOVERY.md` (the NeuRIS API map).
