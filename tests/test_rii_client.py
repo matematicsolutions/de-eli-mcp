@@ -9,7 +9,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from de_eli_mcp.citations import enrich_rii_decision, rii_human_readable_citation
+from de_eli_mcp.citations import (
+    enrich_rii_decision,
+    rii_human_readable_citation,
+    rii_search_citation,
+)
 from de_eli_mcp.rii_client import SUPPORTED_COURTS, parse_decision_xml, parse_toc, search_toc
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -140,3 +144,15 @@ def test_enrich_rii_decision_falls_back_to_rii_uri_without_ecli():
     doc = parse_decision_xml(xml_bytes)
     enriched = enrich_rii_decision(doc)
     assert enriched["eli_uri"] == "rii:JURE100055033"
+
+
+def test_rii_search_citation_formats_toc_date_as_german():
+    assert (
+        rii_search_citation("BGH 6. Zivilsenat", "20260929", "VI ZR 402/24")
+        == "BGH 6. Zivilsenat, vom 29.09.2026 - VI ZR 402/24"
+    )
+
+
+def test_rii_search_citation_without_usable_date_falls_back_to_aktenzeichen():
+    assert rii_search_citation("BGH", None, "VI ZR 402/24") == "VI ZR 402/24"
+    assert rii_search_citation("BGH", "2026-09", "VI ZR 402/24") == "VI ZR 402/24"

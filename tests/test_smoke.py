@@ -151,6 +151,23 @@ async def test_smoke_rii_case_search_bverfg() -> None:
 
 
 @pytest.mark.asyncio
+async def test_smoke_rii_case_search_citation_uses_german_date() -> None:
+    """The search citation must read 'vom DD.MM.YYYY', not RII's raw 'vom YYYYMMDD'
+    (2026-10-08: the search tool built its own string from the raw TOC date while
+    de_rii_get_case_text already formatted it - two tools, two citation styles)."""
+    result = await de_rii_case_search(RiiCaseQuery(court="BGH", limit=5))
+    assert result.items, "Need BGH hits to check the citation format"
+    for item in result.items:
+        if not (item.decision_date and item.aktenzeichen):
+            continue
+        d = item.decision_date
+        assert f"vom {d[6:8]}.{d[4:6]}.{d[0:4]}" in item.human_readable_citation, (
+            item.human_readable_citation
+        )
+        assert f"vom {d} " not in item.human_readable_citation
+
+
+@pytest.mark.asyncio
 async def test_smoke_rii_case_search_each_target_court_has_hits() -> None:
     """All six courts named in the task (BVerfG/BGH/BAG/BFH/BVerwG/BSG) must be
     non-empty in the live RII TOC - this is the whole point of the connector."""

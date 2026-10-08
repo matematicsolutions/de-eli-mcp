@@ -274,6 +274,20 @@ def rii_human_readable_citation(payload: dict[str, Any]) -> str | None:
     return citation or aktenzeichen
 
 
+def rii_search_citation(
+    court_raw: str | None, decision_date: str | None, aktenzeichen: str | None
+) -> str | None:
+    """Citation for one RII TOC row (search results carry no Doktyp), e.g.
+    ``'BGH 6. Zivilsenat, vom 29.09.2026 - VI ZR 402/24'``. Same DD.MM.YYYY date
+    as ``rii_human_readable_citation``, so search and full text cite alike."""
+    date_de = _format_iso_date_de(_rii_date_to_iso(decision_date))
+    if not (date_de and aktenzeichen):
+        return aktenzeichen
+    court = court_raw.strip() if isinstance(court_raw, str) else ""
+    head = f"{court}, vom {date_de}" if court else f"vom {date_de}"
+    return f"{head} - {aktenzeichen}"
+
+
 def _rii_date_to_iso(raw: str | None) -> str | None:
     """RII dates are 'YYYYMMDD' (no separators); convert to ISO 'YYYY-MM-DD'."""
     if not isinstance(raw, str) or len(raw) != 8 or not raw.isdigit():

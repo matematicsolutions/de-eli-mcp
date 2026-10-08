@@ -29,6 +29,7 @@ from .citations import (
     enrich_rii_decision,
     parse_eli,
     pick_encoding_content_url,
+    rii_search_citation,
 )
 from . import runtime
 from .client import DEFAULT_BASE_URL, NeurisClient, extract_search_items
@@ -94,7 +95,7 @@ This MCP server exposes the German NeuRIS API (rechtsinformationen.bund.de) - of
 5. `de_recent_changes` - acts published since `since_iso` (ISO 8601), newest-first. Useful for a law-monitoring feature.
 
 ### Case law (federal court decisions, NeuRIS beta)
-6. `de_case_search` - search decisions (`GET /v1/case-law`) by `search_term` and date. Each item carries its `ecli` (e.g. `ECLI:DE:BAG:2024:200624.U.8AZR124.23.0`). **NeuRIS case-law coverage is a small beta slice** - prefer tools 9-10 below for the six federal supreme/constitutional courts.
+6. `de_case_search` - search decisions (`GET /v1/rechtsprechung`) by `search_term` and date. Each item carries its `ecli` (e.g. `ECLI:DE:BAG:2024:200624.U.8AZR124.23.0`). **NeuRIS case-law coverage is a small beta slice** - prefer tools 9-10 below for the six federal supreme/constitutional courts.
 7. `de_get_decision` - decision metadata by `document_number` (e.g. `KARE600069049`).
 8. `de_get_decision_text` - full text of a decision in `html` or `xml`.
 
@@ -132,6 +133,7 @@ Tools return a structured error with a `[code]` prefix:
 - `not_found` - the act or the requested manifestation does not exist. Try `de_search` to locate a concrete expression-level ELI.
 - `unsupported_format` - `format` for `de_get_text` must be `html` or `xml`.
 - `upstream_error` - a NeuRIS API error (HTTP, timeout, malformed). Retry once before surfacing to the user.
+- `endpoint_gone` - NeuRIS has removed the endpoint (HTTP 410). Do not retry. The message carries NeuRIS's own successor hint and, for case law, the fallback: `de_rii_case_search` for federal courts, `de_oldp_case_search` for state courts.
 
 ## Response style
 
@@ -150,6 +152,7 @@ class ELIError(Exception):
         "not_found",
         "unsupported_format",
         "upstream_error",
+        "endpoint_gone",
     })
 
     def __init__(self, code: str, message: str):
@@ -186,10 +189,33 @@ def _audit() -> AuditLogger:
     return AuditLogger()
 
 
-def _map_http_error(exc: Exception) -> Exception:
-    """Translate an httpx 404 into a structured not_found; otherwise upstream_error."""
+CASE_LAW_FALLBACK = (
+    "For federal courts (BVerfG, BGH, BAG, BFH, BVerwG, BSG, BPatG) use "
+    "de_rii_case_search / de_rii_get_case_text; for state courts or full-text search "
+    "use de_oldp_case_search / de_oldp_get_case."
+)
+
+
+def _gone_hint(response: httpx.Response) -> str:
+    """The upstream's own explanation of a 410 (NeuRIS names the successor path)."""
+    try:
+        errors = response.json().get("errors")
+        message = errors[0].get("message") if isinstance(errors, list) and errors else None
+    except Exception:
+        message = None
+    return message.strip() if isinstance(message, str) and message.strip() else "No successor given."
+
+
+def _map_http_error(exc: Exception, fallback: str | None = None) -> Exception:
+    """Translate an httpx 404 into not_found, a 410 into endpoint_gone; otherwise upstream_error.
+
+    ``fallback`` names the alternative tools to try when NeuRIS has removed the endpoint.
+    """
     if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code == 404:
         return ELIError("not_found", "Act not found in NeuRIS. Try de_search to locate it.")
+    if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code == 410:
+        message = f"NeuRIS removed this endpoint (HTTP 410): {_gone_hint(exc.response)}"
+        return ELIError("endpoint_gone", f"{message} {fallback}" if fallback else message)
     if isinstance(exc, (httpx.HTTPStatusError, httpx.TransportError, httpx.TimeoutException)):
         return ELIError("upstream_error", f"NeuRIS API error: {type(exc).__name__}: {exc}")
     return exc
@@ -507,7 +533,7 @@ async def de_recent_changes(since_iso: str, limit: int = 50) -> list[ActInfo]:
 async def de_case_search(query: CaseSearchQuery) -> CaseSearchResult:
     """Search German federal court decisions in NeuRIS.
 
-    Maps to ``GET /v1/case-law``. Each item gets ``ecli``,
+    Maps to ``GET /v1/rechtsprechung``. Each item gets ``ecli``,
     ``human_readable_citation``, ``source_url``.
 
     Args:
@@ -542,7 +568,7 @@ async def de_case_search(query: CaseSearchQuery) -> CaseSearchResult:
                 status="error",
                 error=f"{type(exc).__name__}: {exc}",
             )
-            raise _map_http_error(exc) from exc
+            raise _map_http_error(exc, fallback=CASE_LAW_FALLBACK) from exc
 
     total, items_raw = extract_search_items(raw)
     items = [
@@ -596,7 +622,7 @@ async def de_get_decision(document_number: str) -> Decision:
                 status="error",
                 error=f"{type(exc).__name__}: {exc}",
             )
-            raise _map_http_error(exc) from exc
+            raise _map_http_error(exc, fallback=CASE_LAW_FALLBACK) from exc
 
     decision = Decision.model_validate(enrich_decision_payload(raw, base_url=base))
 
@@ -666,7 +692,7 @@ async def de_get_decision_text(document_number: str, format: TextFormat = "html"
                 status="error",
                 error=f"{type(exc).__name__}: {exc}",
             )
-            raise _map_http_error(exc) from exc
+            raise _map_http_error(exc, fallback=CASE_LAW_FALLBACK) from exc
 
     enriched = enrich_decision_payload(decision, base_url=base)
     result = DecisionText(
@@ -709,7 +735,7 @@ async def de_rii_case_search(query: RiiCaseQuery) -> RiiCaseSearchResult:
 
     RII is the official BMJ/juris case-law aggregator and, per the independent Legal
     Data Hunter audit, is *complete* for BVerfG, BGH, BAG, BFH, BVerwG, BSG (+ BPatG) -
-    unlike NeuRIS's `/v1/case-law`, which is a small beta slice. Filters over the master
+    unlike NeuRIS's `/v1/rechtsprechung`, which is a small beta slice. Filters over the master
     table of contents (court, Aktenzeichen substring, date range); there is no full-text
     search (the TOC carries no decision text).
 
@@ -757,10 +783,8 @@ async def de_rii_case_search(query: RiiCaseQuery) -> RiiCaseSearchResult:
             doc_id=it.doc_id,
             zip_url=it.zip_url,
             modified=it.modified,
-            human_readable_citation=(
-                f"{it.court_raw}, vom {it.decision_date} - {it.aktenzeichen}"
-                if it.decision_date and it.aktenzeichen
-                else it.aktenzeichen
+            human_readable_citation=rii_search_citation(
+                it.court_raw, it.decision_date, it.aktenzeichen
             ),
             source_url=it.zip_url,
         )

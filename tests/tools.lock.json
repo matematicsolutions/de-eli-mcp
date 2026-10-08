@@ -1,5 +1,5 @@
 {
-  "package_version": "0.5.3",
+  "package_version": "0.5.4",
   "tools": {
     "de_case_search": {
       "descriptor": {
@@ -9,7 +9,7 @@
           "openWorldHint": true,
           "readOnlyHint": true
         },
-        "description": "Search German federal court decisions in NeuRIS.\n\nMaps to ``GET /v1/case-law``. Each item gets ``ecli``,\n``human_readable_citation``, ``source_url``.",
+        "description": "Search German federal court decisions in NeuRIS.\n\nMaps to ``GET /v1/rechtsprechung``. Each item gets ``ecli``,\n``human_readable_citation``, ``source_url``.",
         "inputSchema": {
           "additionalProperties": false,
           "properties": {
@@ -301,7 +301,7 @@
           "type": "object"
         }
       },
-      "sha256": "60647858fcaabebd1bcd8c8294a94188aff526db39b6319718395bb71356c8ca"
+      "sha256": "138f158b84888016bcac2666098c80f6593b94c40f51d97370d3ca8c1e5a09e2"
     },
     "de_coverage": {
       "descriptor": {
@@ -1211,7 +1211,7 @@
         "name": "de_get_decision",
         "outputSchema": {
           "additionalProperties": true,
-          "description": "Full court-decision metadata - GET /v1/case-law/{documentNumber}.",
+          "description": "Full court-decision metadata - GET /v1/rechtsprechung/{documentNumber}.",
           "properties": {
             "@id": {
               "anyOf": [
@@ -1337,7 +1337,7 @@
           "type": "object"
         }
       },
-      "sha256": "ed73530b209ccd2129498eb5c36899ccff37d4e505a870c005e846cf6517c5b7"
+      "sha256": "502e398a94a125084a180cca3633f300a88a86f30f0218eb0e392fd160905505"
     },
     "de_get_decision_text": {
       "descriptor": {
@@ -2330,7 +2330,7 @@
           "openWorldHint": true,
           "readOnlyHint": true
         },
-        "description": "Search German federal court decisions via rechtsprechung-im-internet.de (RII).\n\nRII is the official BMJ/juris case-law aggregator and, per the independent Legal\nData Hunter audit, is *complete* for BVerfG, BGH, BAG, BFH, BVerwG, BSG (+ BPatG) -\nunlike NeuRIS's `/v1/case-law`, which is a small beta slice. Filters over the master\ntable of contents (court, Aktenzeichen substring, date range); there is no full-text\nsearch (the TOC carries no decision text).",
+        "description": "Search German federal court decisions via rechtsprechung-im-internet.de (RII).\n\nRII is the official BMJ/juris case-law aggregator and, per the independent Legal\nData Hunter audit, is *complete* for BVerfG, BGH, BAG, BFH, BVerwG, BSG (+ BPatG) -\nunlike NeuRIS's `/v1/rechtsprechung`, which is a small beta slice. Filters over the master\ntable of contents (court, Aktenzeichen substring, date range); there is no full-text\nsearch (the TOC carries no decision text).",
         "inputSchema": {
           "additionalProperties": false,
           "properties": {
@@ -2605,7 +2605,7 @@
           "type": "object"
         }
       },
-      "sha256": "23f478174fc6dace4ffedc4442e211244cda26299aad71ba470205ed7621a3d7"
+      "sha256": "17e9f811537f53530b77836e15a084cb6d0d82b454055021d75bc05f1f2cb0f0"
     },
     "de_rii_get_case_text": {
       "descriptor": {
@@ -3199,5 +3199,5 @@
       "sha256": "026eb7067fb31f8093358edf43702202fd86ccc9ff59c673fcf8a494d559a6df"
     }
   },
-  "toolset_sha256": "9ab08e4651a0719d2417884eb1ae449f0eb4482ca1243eaa25a749dbcc7adc51"
+  "toolset_sha256": "a3b0cf06cd9c4e824e9a01cb93e9c04605a34768d58cf70c4aec4dc85d9bc31c"
 }

@@ -138,7 +138,7 @@ class DecisionInfo(_Tolerant):
 
 
 class Decision(DecisionInfo):
-    """Full court-decision metadata - GET /v1/case-law/{documentNumber}."""
+    """Full court-decision metadata - GET /v1/rechtsprechung/{documentNumber}."""
 
     dataset_note: str = DATASET_NOTE
 

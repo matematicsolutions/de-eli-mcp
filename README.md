@@ -72,7 +72,7 @@ German source.
 > **Complete source (case law).** `de_rii_case_search` / `de_rii_get_case_text` query
 > rechtsprechung-im-internet.de directly. Per an independent audit (Legal Data Hunter,
 > `worldwidelaw/legal-sources`), RII's coverage of BVerfG, BGH, BAG, BFH, BVerwG and BSG
-> is marked `status: complete` - unlike NeuRIS's `/v1/case-law`, which only carries a
+> is marked `status: complete` - unlike NeuRIS's `/v1/rechtsprechung`, which only carries a
 > small beta slice (and can drop fields such as `ecli` for the very same decision RII
 > serves with a full ECLI - see BAG decision `KARE600069049` / `ECLI:DE:BAG:2024:...` as
 > a live example). **Prefer the RII tools for these six courts.**
@@ -113,7 +113,7 @@ German source.
 | `de_get_text` | Fetch the full text (`html` or `xml` / LegalDocML.de). |
 | `de_list_publishers` | List the publication organs (BGBl I/II, Bundesanzeiger). |
 | `de_recent_changes` | Acts published since a date, newest-first. |
-| `de_case_search` / `de_get_decision(_text)` | NeuRIS case-law beta slice (`/v1/case-law`). |
+| `de_case_search` / `de_get_decision(_text)` | NeuRIS case-law beta slice (`/v1/rechtsprechung`; NeuRIS retired `/v1/case-law` with HTTP 410 in October 2026). If NeuRIS removes an endpoint again, these tools return `endpoint_gone` naming the fallback: `de_rii_case_search` for federal courts, `de_oldp_case_search` for state courts. |
 | `de_rii_case_search` | Search **BVerfG/BGH/BAG/BFH/BVerwG/BSG/BPatG** decisions via RII's master TOC (court, Aktenzeichen substring, date range). |
 | `de_rii_get_case_text` | Full text of one RII decision by `doc_id` - real `ecli` when the court publishes one, plus `titelzeile`/`leitsatz`/`tenor`/full `content`. |
 | `de_oldp_case_search` | Search **Open Legal Data** - 423 944 decisions from 1 119 courts at all levels (verified live 2026-07-08), the only tool here covering **state courts** and offering **full-text search** (`text`). Metadata filters: `court_slug`, `file_number` (exact), `date_after`/`date_before`. |

@@ -26,8 +26,8 @@ Based on the official OpenAPI spec at `https://docs.rechtsinformationen.bund.de/
 | `/v1/legislation` | GET | list/search acts (filters + pagination) |
 | `/v1/legislation/eli/{jurisdiction}/{agent}/{year}/{naturalIdentifier}/{pointInTime}/{version}/{language}` | GET | act metadata (work/expression) by ELI |
 | `.../{pointInTimeManifestation}/{subtype}.xml` or `.html` | GET | **full text** (format selected by FILE EXTENSION, not Accept) |
-| `/v1/case-law` | GET | search decisions (ECLI) |
-| `/v1/case-law/{documentNumber}` | GET | decision metadata |
+| `/v1/rechtsprechung` | GET | search decisions (ECLI) - was `/v1/case-law`, removed 2026-10 (HTTP 410), see addendum at the end |
+| `/v1/rechtsprechung/{documentNumber}` | GET | decision metadata - was `/v1/case-law/{documentNumber}` |
 | `/v1/literature` | GET | literature |
 | `/v1/document` | GET | global cross-kind search |
 | `/v1/administrative-directive` | GET | administrative directives |
@@ -62,7 +62,7 @@ Based on the official OpenAPI spec at `https://docs.rechtsinformationen.bund.de/
 | `de_list_publishers` | no dedicated endpoint -> derive from `agent` codes (bgbl-1, bgbl-2, banz...) or `/v1/statistics` | probably a static dictionary |
 | `de_recent_changes` | `/v1/legislation?sort=date&dateFrom=...` | sort descending by date; optionally `/v1/bulk-zip-links` for dumps |
 
-**Phase 2 (case law, ECLI):** `de_case_search` -> `/v1/case-law`; `de_get_decision` -> `/v1/case-law/{documentNumber}`. Same API, separate sub-family of tools.
+**Phase 2 (case law, ECLI):** `de_case_search` -> `/v1/rechtsprechung`; `de_get_decision` -> `/v1/rechtsprechung/{documentNumber}` (originally `/v1/case-law`, renamed upstream 2026-10). Same API, separate sub-family of tools.
 
 ## Citation contract (Article IV) - CLOSED for DE
 
@@ -165,3 +165,38 @@ No blockers. RII has no API terms distinct from NeuRIS's own public-domain basis
 offline unit tests against fixed fixtures (`tests/test_rii_client.py`, 13 tests) plus
 live smoke tests against the real TOC and real decisions for all six target courts
 (`tests/test_smoke.py`, 3 tests). Version bumped 0.1.0 -> 0.2.0.
+
+---
+
+# Discovery addendum: NeuRIS case law moved to `/v1/rechtsprechung`
+
+Date: 2026-10-08
+Trigger: three live smoke tests (`test_smoke_case_search`, `test_smoke_get_decision`,
+`test_smoke_get_decision_text_html`) went red on unchanged code; every `/v1/case-law` call
+answered HTTP 410 Gone.
+
+## Finding (CONFIRMED, live probe + OpenAPI 2026-10-08)
+
+- **Moved, not withdrawn.** The 410 body names the successor itself, e.g.
+  `{"errors":[{"code":"gone","message":"This endpoint has been removed. Use
+  /v1/rechtsprechung/KARE600069049 instead."}]}`.
+- **Same host.** Still `https://testphase.rechtsinformationen.bund.de` - no general-availability
+  host yet; the OpenAPI `servers` entry is unchanged.
+- **OpenAPI** (`https://docs.rechtsinformationen.bund.de/v3/api-docs`): `/v1/case-law` and
+  `/v1/case-law/**` are `deprecated` and routed to `handleRemovedEndpoint` (410). Successors:
+  `GET /v1/rechtsprechung` (`searchRechtsprechung`; params `searchTerm`, `dateFrom`, `dateTo`,
+  `size`, `pageIndex`, `sort` as before, plus new filters `fileNumber`, `ecli`, `court`,
+  `legalEffect`, `type`, `typeGroup`), `GET /v1/rechtsprechung/{documentNumber}`, and the
+  manifestations `.html` / `.xml` / `.zip`. New: `/v1/rechtsprechung/courts`,
+  `/v1/rechtsprechung/changelog`.
+- **Payload unchanged.** Search items carry the same keys as the recorded fixture plus one new
+  field (`titleLine`); `@id` and every `encoding[].contentUrl` now point at
+  `/v1/rechtsprechung/...`, so `de_get_decision_text` follows them without code changes.
+- `/v1/statistics` still reports the bucket as `case-law` (84 418 documents at probe).
+
+## Change
+
+Client paths repointed (`client.py`). A NeuRIS 410 now maps to the named error
+`endpoint_gone` (not a bare `upstream_error`), carrying the upstream's successor hint and,
+for the three case-law tools, the fallback to `de_rii_case_search` (federal courts) and
+`de_oldp_case_search` (state courts). Offline guards: `tests/test_neuris_case_law.py`.

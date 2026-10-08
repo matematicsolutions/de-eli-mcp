@@ -140,14 +140,16 @@ class NeurisClient:
         data = await self._get_json("/v1/statistics", category="dict")
         return data if isinstance(data, dict) else {}
 
+    # Case law lives under /v1/rechtsprechung. NeuRIS removed /v1/case-law and
+    # /v1/case-law/** (HTTP 410, observed 2026-10-08); the payload shape is unchanged.
     async def case_search(self, params: dict[str, Any]) -> dict[str, Any]:
-        data = await self._get_json("/v1/case-law", params=params, category="search")
+        data = await self._get_json("/v1/rechtsprechung", params=params, category="search")
         if not isinstance(data, dict):
             return {"totalItems": 0, "member": []}
         return data
 
     async def get_decision(self, document_number: str) -> dict[str, Any]:
-        path = f"/v1/case-law/{document_number.strip().lstrip('/')}"
+        path = f"/v1/rechtsprechung/{document_number.strip().lstrip('/')}"
         data = await self._get_json(path, category="act")
         if not isinstance(data, dict):
             raise ValueError(f"Unexpected response shape for {path}: {type(data).__name__}")
