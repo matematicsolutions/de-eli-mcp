@@ -251,7 +251,7 @@ wheels = [
 
 [[package]]
 name = "de-eli-mcp"
-version = "0.5.3"
+version = "0.5.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -260,21 +260,21 @@ dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/17/ee/1de5a2ab0cafadc518dd9cdbf43c2002dda4aad6bc3a7e3bf1e496955bf1/de_eli_mcp-0.5.3.tar.gz", hash = "sha256:478daa94e8ab3572e4be2e43d36f94152cfb398738873a5feb4954c1703ff5ee", size = 76701, upload-time = "2026-08-24T13:29:50.153Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/75/33/1a5b6a33e7e8d42cded068e644b27265270af5f0ec32411680b331e7ec78/de_eli_mcp-0.5.4.tar.gz", hash = "sha256:4eff00386f63bd8291cdca0e23f5dd87db9186a4f9a4947ea658afc4af12e720", size = 375209, upload-time = "2026-10-08T09:04:28.48Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2f/cc/3f5220a817b333fa1f3f3908c57787124eecbab16a7d1bebc530eee9d041/de_eli_mcp-0.5.3-py3-none-any.whl", hash = "sha256:8a3fa413d6a7ce5d09e1183c14683869cc26bc4aa7ba45912b222d732feb0b87", size = 48624, upload-time = "2026-08-24T13:29:48.788Z" },
+    { url = "https://files.pythonhosted.org/packages/98/96/4b81ad4222c86d68b0290a5a5323273610f151fbf8a6fb1dfae5fdcc3993/de_eli_mcp-0.5.4-py3-none-any.whl", hash = "sha256:92356634976824fcbadbe1257781906a1358cd5b793c43eaf7bfee4f9a198556", size = 49734, upload-time = "2026-10-08T09:04:27.415Z" },
 ]
 
 [[package]]
 name = "de-eli-mcp-plugin-runtime"
-version = "0.5.3"
+version = "0.5.4"
 source = { virtual = "." }
 dependencies = [
     { name = "de-eli-mcp" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "de-eli-mcp", specifier = "==0.5.3" }]
+requires-dist = [{ name = "de-eli-mcp", specifier = "==0.5.4" }]
 
 [[package]]
 name = "diskcache"

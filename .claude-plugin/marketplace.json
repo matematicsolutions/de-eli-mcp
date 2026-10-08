@@ -10,7 +10,7 @@
     {
       "name": "de-eli-mcp",
       "description": "German federal legislation (NeuRIS, ELI), case law at all court levels (ECLI) and Bundestag documents (DIP) with official source identifiers.",
-      "version": "0.5.3",
+      "version": "0.5.4",
       "author": { "name": "Wieslaw Mazur / MateMatic Solutions" },
       "license": "Apache-2.0",
       "source": "./plugin"

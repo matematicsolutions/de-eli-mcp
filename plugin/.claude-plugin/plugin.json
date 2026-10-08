@@ -1,7 +1,7 @@
 {
   "name": "de-eli-mcp",
   "description": "German federal law with verifiable citations: legislation from the federal legal information portal (NeuRIS, ELI identifiers, real text), case law at all court levels (rechtsprechung-im-internet.de and Open Legal Data, ECLI) and Bundestag parliamentary documents (DIP). Every answer carries the official source and identifier, so a citation can be checked instead of trusted. Queries go only to these public German sources; nothing goes to MateMatic.",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "author": { "name": "Wieslaw Mazur / MateMatic Solutions" },
   "homepage": "https://matematicsolutions.com/en/boutique/connectors",
   "repository": "https://github.com/matematicsolutions/de-eli-mcp",

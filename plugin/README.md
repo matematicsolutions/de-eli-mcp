@@ -1,7 +1,7 @@
 # de-eli-mcp - Claude plugin
 
 German federal law with verifiable citations, as a Claude plugin. It runs the
-[de-eli-mcp](https://github.com/matematicsolutions/de-eli-mcp) MCP server, version 0.5.3
+[de-eli-mcp](https://github.com/matematicsolutions/de-eli-mcp) MCP server, version 0.5.4
 from PyPI. `server/uv.lock` pins that package and every dependency with hashes, and the
 plugin starts it with `uv run --frozen`, so it runs exactly what was reviewed. Every
 answer carries the official source and identifier (ELI for legislation, ECLI or docket
